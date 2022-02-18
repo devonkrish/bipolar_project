@@ -169,7 +169,7 @@ end % bipolar spacing loop
 TRM(:,~okpt,:)=nan; 
 TRSD(:,~okpt,:)=nan; 
 TRSE(:,~okpt,:)=nan; 
-TRbpdist(:,~okpt)=nan;  %********
+% TRbpdist(:,~okpt)=nan;  %********
 
 %% plots aggregated across patients
 figure; set(gcf,'color','w'); %,'position',[1055 216 1217 826]

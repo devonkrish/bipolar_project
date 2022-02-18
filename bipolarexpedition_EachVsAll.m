@@ -2,10 +2,10 @@
 
 % BIPOLAR PAIR ANALYSIS: EACH VS. ALL
 
-pt='EC133';
-nchtocheck=256;
-nwindtocheck=100;
-binsz=4; % bin size in mm
+pt='EC183'; % EC175 and EC183 both have intact 16x16 square grids (channel #s 1:256)
+nchtocheck=256; %***ideally, should eventually convert this into an index of channels to check (STG, IFG, etc) which could be defined before the spectra loop to save computational time... 
+windowstocheck=1:100;
+binsz=3; % bin size in mm
 
 onlygrids=true;
 onlydepths=false;
@@ -93,10 +93,42 @@ okc=~badchI; clear x xbch
 
 
 %% ALL PAIRS (each vs. all others) analysis and example plot
- binz=0:binsz:85; %floor(max(max(Mbpdist))); % bins to max distance 85mm
+ d=d(:,:,windowstocheck); clear Straces_allch; %free up RAM by getting rid of whatever won't be used (only using first ___ number of windows)
+                 % ***hint hint: opportunity here to select speech or stim windows!
+ [M,Mbpdist,frx]=bpspectra_EachVsAll(d,sfx,frxrange,em,nchtocheck);
+ 
+ 
+ %% mean across windows
+ M=sq(mean(M,4)); 
+ 
+ 
+ %% unstack and line up into 2D matrix to create channels^2 X frequencies for easier indexing-->binning
+ Mflat=[];
+ Mflat_bpdist=[];
+ for c2=1:nchtocheck; 
+     Mflat=[Mflat; sq(M(:,c2,:))];               
+     Mflat_bpdist=[Mflat_bpdist; Mbpdist(:,c2)]; % corresponding distance index
+ end
 
- [mz,Mbpdist,frx]=bpspectra_EachVsAll(d,sfx,frxrange,em,binz,nchtocheck,nwindtocheck);
-
+ binz=0:binsz:85; % can change binsz PRN at this point to test different bin resolutions on the plots below
+ clear mx my mz
+ nbinz=length(binz)-1;
+ mz=[]; 
+ %bin by distance and take the mean, creating: frequency X distance (binned)
+ for i=1:nbinz 
+     mz(:,i)=nanmean(Mflat(Mflat_bpdist>=binz(i) & Mflat_bpdist<binz(i+1),:),1);
+     binindex_min_ltnmax(i,:)=[binz(i) binz(i+1)];
+ end
+ 
+% Notes:
+% mz is frequency X distance (binned), after having averaged across windows
+% binindex_min_ltmax tells you for each column of mz what was the 
+%         1] minimum (>0) distance, and
+%         2] the "less than max" (<) distance
+%         that were used to index bipolar pairs for that bin
+%         Note: first bin includes zero, which corresponds to
+%         the bin containing the referential channels
+ 
  % zscore the log transformed power according to frequency
  nfrx=length(frx);
  for i=1:nfrx; nns=~isnan(mz(i,:)); 
@@ -104,11 +136,11 @@ okc=~badchI; clear x xbch
  end; 
 
  %%
- figure('color','w','position',[277 223 884 963]); colormap(parula); 
+ figure('color','w','position',[277 223 1095 963]); colormap(parula); 
 
 % Plot confusion matrix of bipolar distances between all pairs
  subplot(8,2,1:2:5); pcolor(Mbpdist); shf; hold on; plot([1 1; 1 256]',[1 256;256 256]','k-','linewidth',1); plot([1 1 1 128 256],[1 128 256 256 256],'k.'); %plot([1 128 256 256 256]/2,[1 1 1 128 256]/2,'k.'); 
-    axis equal off; set(gca,'ydir','normal','xdir','normal'); colormap(gca,flipud(cmocean('deep'))); colorbar('fontsize',12); title('Bipolar pair distance','fontsize',14,'fontweight','normal')
+    axis equal off; set(gca,'ydir','reverse','xdir','reverse'); colormap(gca,flipud(cmocean('deep'))); colorbar('fontsize',12); title('Bipolar pair distance','fontsize',14,'fontweight','normal')
 
 % Histogram of number of pairs per bin
  subplot(8,2,7); histogram(make1d(Mbpdist),0:binsz:85,'facecolor',.5*[1 1 1]); set(gca,'fontsize',12); xlabel('Binned bipolar distance (mm)','fontsize',14); 
@@ -117,22 +149,23 @@ okc=~badchI; clear x xbch
  % line plot of same as above, zscored
  subplot(2,2,2); hold on; cmo=fliplr(cmocean('thermal',nfrx+round(nfrx)*.1)); colormap(gca,cmo); cb=colorbar; set(cb,'ticks',0:.25:1,'ticklabels',0:50:200,'fontsize',12)
  for i=nfrx:-1:1; nns=~isnan(mz(i,:));
-     plot(binz(2:end),mz_z(i,:),'-','color',cmo(i,:),'linewidth',1); 
+     plot(binz(2:size(mz_z,2)+1),mz_z(i,:),'-','color',cmo(i,:),'linewidth',1); 
  end; grid on; axis tight; 
  set(gca,'fontsize',14); ylabel('ln(power)'); xlabel('Bipolar distance (mm)','fontsize',14); 
  text(max(xlim)+diff(xlim)/4,mean(ylim),'Frequency (Hz)','fontsize',12,'rotation',90,'horizontalalignment','center')
 
-
  subplot(2,2,3); 
- imagesc(binz(2:end),frx,mz_z); set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
+ pcolor(binz(2:size(mz_z,2)+1),frx,mz_z); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
  text(max(xlim)+diff(xlim)/4,mean(ylim),'ln(power)','fontsize',12,'rotation',90,'horizontalalignment','center')
- %set(gca,'xscale','log','xtick',ft,'xticklabel',ftl,'fontsize',14); 
+ title('(z-scored by frequency)','fontweight','normal')
+ set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 
  sp(2,2,4)
- [mx,my]=meshgrid(binz(1:end-1)+binsz/2,frx);
+ [mx,my]=meshgrid(binz(2:size(mz_z,2)+1)+binsz/2,frx);
  surf(mx,my,(mz_z)); xlabel('Bipolar distance (mm)','fontsize',14); ylabel('Frequency (Hz)','fontsize',14); zlabel('ln (Power)','fontsize',14)
  view(140,25); set(gca,'xdir','reverse','ydir','reverse','ytick',ft,'yticklabel',ftl,'fontsize',14); xlim([binsz/2 85]);  axis tight; 
- set(gca,'yscale','log'); %set(gca,'yscale','linear'); set(gca,'zscale','log'); set(gca,'zscale','linear')
+ set(gca,'yscale','log'); 
+  title('(z-scored by frequency)','fontweight','normal')%set(gca,'yscale','linear'); set(gca,'zscale','log'); set(gca,'zscale','linear')
  %ylim([0 30]); %zlim([.035 3]); caxis([.035 3]); %low freqs only
  %ylim([30 200]); %zlim([0 0.035]); caxis([0 0.035]); %high freqs only
  ylim([0 200]); 
