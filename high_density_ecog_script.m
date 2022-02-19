@@ -25,8 +25,6 @@
 % kleen.ucsf.edu
 
 % ill send Jon a picture
-
-
 %% load data
 doPlotIndSubj = false;
 doPerm = true;
@@ -44,8 +42,8 @@ twoSidedPerm = true;
 
 fs = 512; % sampling rate Hz
 
-fileSpikes = 'C:\Users\david\Box\KLEENLAB\David\High-density bipolar study\taggedspikesforDevon.mat';
-folderBaseline = 'C:\Users\david\Box\KLEENLAB\David\High-density bipolar study\baseline-high-density-data';
+fileSpikes = '/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedspikes.mat';
+folderBaseline = '/Volumes/KLEEN_DRIVE/David/Bipolar project/baseline-high-density-data/bandpassfiltered/';
 filesFolderBaseline = dir(folderBaseline);
 namesFilesBaseline = {filesFolderBaseline(:).name};
 
@@ -60,14 +58,14 @@ ptsTotal = {'EC129';'EC130';'EC131';'EC133';'EC135';'EC136';'EC137';'EC143';'EC1
 patientsVetted = {'EC133','EC175','EC181','EC183','EC186','EC187','EC196','EC219',...
     'EC220','EC221','EC222'};
 
-folderFiguresBase = 'C:\Users\david\SharedCode\high_density_ecog\figures\';
+folderDataBase = '/Volumes/KLEEN_DRIVE/David/Bipolar project/output';
 %folderFiguresCell = {fullfile(folderFiguresBase,'absDer'),fullfile(folderFiguresBase,'LL20'),fullfile(folderFiguresBase,'LL40'),fullfile(folderFiguresBase,'LL100')};
 %cellAbsDeriv = {true,false,false,false};
 %cellLL = {false,true,true,true};
 %cellLLnum = {0,0.02,0.04,0.1};
 %saveName = {'absDer','LL20','LL40','LL100'};
 
-folderFiguresCell = {fullfile(folderFiguresBase,'LL20'),fullfile(folderFiguresBase,'LL40'),fullfile(folderFiguresBase,'LL100')};
+folderFiguresCell = {fullfile(folderDataBase,'LL20'),fullfile(folderDataBase,'LL40'),fullfile(folderDataBase,'LL100')};
 cellAbsDeriv = {false,false,false};
 cellLL = {true,true,true};
 cellLLnum = {0.02,0.04,0.1};
@@ -143,13 +141,17 @@ for index = 1:length(folderFiguresCell)
         for jjj = 1:numel(dataSubj)
             dataSubjMat(:,:,jjj) = dataSubj{jjj};
         end
+        
+        % make data time x channels x trials
+        dataSubjMat = permute(dataSubjMat,[2,1,3]);
+        
         t = linspace(-0.5,0.5,size(dataSubjMat,1));
         %dataSubjMat = reshape(cell2mat(dataSubj),size(dataSubj{1},1),numel(dataSubj),size(dataSubj{1},2));
         %dataSubjMat = permute(dataSubjMat,[3,1,2]);
 
         % deal with bad channels
         badChansSubj = badchidx{logicPts};
-        goodChansVec = true(size(dataSubj{1},2),1);
+        goodChansVec = true(size(dataSubj{1},1),1);
         goodChansVec(badChansSubj) = false;
 
         dataSubjMatGoodOnly = dataSubjMat(:,goodChansVec,:);
@@ -169,7 +171,7 @@ for index = 1:length(folderFiguresCell)
         stdBaseline = squeeze(std(totalBaselineDataSubj,0,3));
 
         % rereference
-        referencedData = ref2bipolar(dataSubjMat,subjName);
+        referencedData = ref2bipolar_reg(dataSubjMat,subjName);
         referencedDataSubSample = ref2bipolar_subsample(dataSubjMat,subjName);
 
         referencedDataGoodOnly = referencedData(:,goodChansVec,:);
@@ -182,7 +184,7 @@ for index = 1:length(folderFiguresCell)
         stdSpikesReferencedSubSampleGoodOnly = squeeze(std(referencedDataSubSampleGoodOnly,0,3));
 
         % rereference baseline
-        referencedDataBaseline = ref2bipolar(totalBaselineDataSubj,subjName);
+        referencedDataBaseline = ref2bipolar_reg(totalBaselineDataSubj,subjName);
         referencedDataBaselineSubSample = ref2bipolar_subsample(totalBaselineDataSubj,subjName);
 
         referencedDataBaselineGoodOnly = referencedDataBaseline(:,goodChansVec,:);

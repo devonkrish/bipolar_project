@@ -56,7 +56,7 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
 
         nch=size(d,2); 
 
-        [bpN,bpT]=xlsread(['/Users/davidcaldwell/code/high_density_ecog/AN_ElectrodeInfoTDT.xlsx'],pts{p});
+        [bpN,bpT]=xlsread(['/Volumes/KLEEN_DRIVE/David/Bipolar project/AN_ElectrodeInfoTDT.xlsx'],pts{p});
         [em,eleclabels,anatomy]=getelecs(pts{p},2);
 
         % d is a matrix of samples by channels by trials consisting of referential intracranial EEG data

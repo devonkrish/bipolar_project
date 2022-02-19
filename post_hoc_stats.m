@@ -1,7 +1,8 @@
 % script to do statistics post hoc on data
 %%
 % load in data
-load('C:\Users\david\SharedCode\high_density_ecog\figures\LL40\LL40.mat')
+dataFile = fullfile(getenv('OUTPUT_DIR_SERVER'),'absDer_jan_19_2022','absDer.mat');
+load(dataFile);
 
 %%
 numChannelsVec = [];

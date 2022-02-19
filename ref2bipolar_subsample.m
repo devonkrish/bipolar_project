@@ -3,7 +3,7 @@ function [d] = ref2bipolar_subsample(d,subj)
 % this sub samples the rereferenced data by skipping every intervening
 % electrode
 
-[bipolarN,bipolarT]=xlsread(['C:\Users\david\SharedCode\high_density_ecog\AN_ElectrodeInfoTDT.xlsx'],subj);
+[bipolarN,bipolarT]=xlsread(['/Volumes/KLEEN_DRIVE/David/Bipolar project/AN_ElectrodeInfoTDT.xlsx'],subj);
 
 for jj = 1:size(d,3)
     for r=1:size(bipolarT,1) %each row of the sheet is a component (grid, strip, or depth)

@@ -2,7 +2,7 @@
 
 % BIPOLAR PAIR ANALYSIS: EACH VS. ALL
 
-pt='EC183'; % EC175 and EC183 both have intact 16x16 square grids (channel #s 1:256)
+pt='EC175'; % EC175 and EC183 both have intact 16x16 square grids (channel #s 1:256)
 nchtocheck=256; %***ideally, should eventually convert this into an index of channels to check (STG, IFG, etc) which could be defined before the spectra loop to save computational time... 
 windowstocheck=1:100;
 binsz=3; % bin size in mm
@@ -52,7 +52,7 @@ end; clear b
 nch=size(d,2); 
 
 % load electrode component infor (grid/strip/depth and how many linear contacts they have in a row
-[bpN,bpT]=xlsread(['/Users/davidcaldwell/code/high_density_ecog/AN_ElectrodeInfoTDT.xlsx'],pts{p});
+[bpN,bpT]=xlsread(['/Volumes/KLEEN_DRIVE/David/Bipolar project/AN_ElectrodeInfoTDT.xlsx'],pts{p});
 [em,eleclabels,anatomy]=getelecs(pts{p},2);
 
 cm=cool(6); cm(1,:)=[0 0 0]; 
