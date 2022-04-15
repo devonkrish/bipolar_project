@@ -43,7 +43,7 @@ twoSidedPerm = true;
 fs = 512; % sampling rate Hz
 
 fileSpikes = '/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedspikes.mat';
-folderBaseline = '/Volumes/KLEEN_DRIVE/David/Bipolar project/baseline-high-density-data/bandpassfiltered/';
+folderBaseline = '/Volumes/KLEEN_DRIVE/David/Bipolar project/baseline-high-density-data';
 filesFolderBaseline = dir(folderBaseline);
 namesFilesBaseline = {filesFolderBaseline(:).name};
 
@@ -117,6 +117,9 @@ for index = 1:length(folderFiguresCell)
         totalBaselineDataSubj = [];
         for indicesNums = 1:length(indicesNames)
             baselineData = load(fullfile(folderBaseline,namesFilesBaseline{indicesNames(indicesNums)}));
+            spksarti = baselineData.hasspk | baselineData.hasarti;
+            excludeInd = spksarti;
+            
             % baselineDataV2 = [];
             %baselineCell = baselineData.nonspks_windows(2,:);
             %for numIndices = 1:length(baselineData.nonspks_windows(2,:))
@@ -124,7 +127,7 @@ for index = 1:length(folderFiguresCell)
             %end
             %baselineDataV2 = permute(baselineDataV2,[2,1,3]);
 
-            baselineData = permute(reshape(cell2mat(baselineData.nonspks_windows(2,:)),size(baselineData.nonspks_windows{2,1},1),size(baselineData.nonspks_windows{2,1},2),numel(baselineData.nonspks_windows(2,:))),[2,1,3]);
+            baselineData = permute(reshape(cell2mat(baselineData.nonspks_windows(2,~excludeInd)),size(baselineData.nonspks_windows{2,1},1),size(baselineData.nonspks_windows{2,1},2),numel(baselineData.nonspks_windows(2,~excludeInd))),[2,1,3]);
             totalBaselineDataSubj = cat(3,totalBaselineDataSubj,baselineData);
         end
         % initialize data matrix for each subject

@@ -103,7 +103,7 @@ for p=1:length(pts); disp(['processing ' pts{p}])
                                 RawECOG = filtfilt(blp,alp,RawECOG); %lowpass below nyquist
                                 RawECOG=RawECOG(1:(dsfx/512):end); %downsample to 512 Hz
                                 raw(i,:)=RawECOG-mean(RawECOG); %zero center
-                                %raw(i,:)=notchjk(raw(i,:),512,60,0); %notch filter
+                                raw(i,:)=notchjk(raw(i,:),512,60,0); %notch filter
                                 clear RawECOG
                             end
                         end
