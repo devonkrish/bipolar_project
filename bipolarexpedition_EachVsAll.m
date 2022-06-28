@@ -1,40 +1,49 @@
-% Delta, theta, traces ofr bp linear, depths and strips separate
-% grids, vs strips vs depths 
+% Delta, theta, traces ofr bp linear microgrid
+% distance on x axis
+% pointss +/- standard error
 
-% what gamma does across grids strips depths 
+% normalize the curves to % power
+%
+
+
+% what gamma does across grids strips depths
 % do individual lines x axis distance, power y axis
 %
 
-% permutation tes twould be on distance/frequency for perumutation windows 
+% permutation tes twould be on distance/frequency for perumutation windows
 % speech vs. non speech IFG, stim vs non stim STG - make sure its
 % exclusive, non speech should not have any stim, non stim should not have
-% any speech 
+% any speech
 
-% spike analysis for 4 vs 8 vs 12 
-% skip 2/3 rows 
+% spike analysis for 4 vs 8 vs 12
+% skip 2/3 rows
 
 
 
 %bipolar vs referntial spectrum
-% take chanel 1 and 2 , take mean of individual spectrum 
+% take chanel 1 and 2 , take mean of individual spectrum
 % take bipolrar reference 1 vs 2 , and then spectrum, and compariuson of
-% this adnt he above 
-% then plot the difference between the two lines (bipolar specturm vs
-% linear) 
+% this adnt he above
+% then plot the difference between the two lines (bipolar specturm vsß
+% linear)
 
-% better represetnation of what youre doing vs referential 
+% better represetnation of what youre doing vs referential ß
 
+% microgrid
+% < 10 mm aspect
 
-% microgrid 
-% < 10 mm aspect 
+% collapse gamma from 50 and up , 1D permutation on this
+% collapse beta from 15 - 40 , 1D on this
+
+% plot both patients , two signficance bars over them for both patients
 
 
 
 % BIPOLAR PAIR ANALYSIS: EACH VS. ALL
 
-savePlots = true; 
-folderFigures = '/Users/davidcaldwell/Box/Kleenlab/David/Results/Apr Results/';
-pt='EC183'; % EC175 and EC183 both have intact 16x16 square grids (channel #s 1:256)
+savePlots = true;
+folderFigures = '/Users/davidcaldwell/Box/Kleenlab/David/Results/June Results/';
+pt='EC175'; % EC175 and EC183 both have intact 16x16 square grids (channel #s 1:256)
 nchtocheck=256; %***ideally, should eventually convert this into an index of channels to check (STG, IFG, etc) which could be defined before the spectra loop to save computational time...
 windowstocheck=1:100;
 binsz=3; % bin size in mm
@@ -46,7 +55,7 @@ onlystrips=false;
 cm=cool(6); cm(1,:)=[0 0 0];
 datadir='/Volumes/KLEEN_DRIVE/David/Bipolar project/baseline-high-density-data/'; %bandpassfiltered/';
 cd([datadir])
-load('/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedspikes.mat')
+load('/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedSpikes_April2022');
 sfx=512;
 frxrange=[2 200]; %frequency range to examine
 ft=[2 5 10 20 50 100 200]; ftl=cellstr(num2str(ft')); %frequency labels for plots
@@ -100,7 +109,7 @@ nch=size(d,2);
 cm=cool(6); cm(1,:)=[0 0 0];
 %datadir='/Volumes/KLEEN_DRIVE/David/Bipolar project/baseline-high-density-data/bandpassfiltered/';
 %cd([datadir])
-load('/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedspikes.mat')
+load('/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedSpikes_April2022');
 sfx=512;
 frxrange=[2 200]; %frequency range to examine
 ft=[2 5 10 20 50 100 200]; ftl=cellstr(num2str(ft')); %frequency labels for plots
@@ -139,9 +148,6 @@ okc=~badchI; clear x xbch
 
 clear Straces_allch;
 
-
-
-
 dSpeech = d(:,:,(hasSpeechTotal & ~hasStimTotal));
 dNoSpeechNoStim = d(:,:,(~hasSpeechTotal & ~hasStimTotal));
 dStim = d(:,:,(hasStimTotal & ~hasSpeechTotal));
@@ -161,13 +167,10 @@ dStim = dStim(:,:,windowstocheck);
 d=d(:,:,windowstocheck); clear Straces_allch; %free up RAM by getting rid of whatever won't be used (only using first ___ number of windows)
 [M,Mbpdist,frx]=bpspectra_EachVsAll(d,sfx,frxrange,em,nchtocheck);
 
-
-
-
 %% mean across windows
 M=sq(mean(M,4));
 
-%% now that we hav ebipolar pairs and spectra, we can select the channels we are interested in 
+%% now that we hav ebipolar pairs and spectra, we can select the channels we are interested in
 
 % which channnels are we interseted in
 chansIntSTG = STG;
@@ -300,7 +303,7 @@ maxAbs = max(abs(maxZ),abs(minZ));
 
 figure
 subplot(3,1,1)
-pcolorjk_djc(binz(2:size(mz_zNoST,3)+1),frx,squeeze(nanmean(mz_zNoST,2))); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); 
+pcolorjk_djc(binz(2:size(mz_zNoST,3)+1),frx,squeeze(nanmean(mz_zNoST,2))); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14);
 %text(max(xlim)+diff(xlim)/10,mean(ylim),'ln(z-score power)','fontsize',12,'rotation',90,'horizontalalignment','center')
 cbar = colorbar();
 cbar.Label.String = 'ln(z-score power)';
@@ -318,13 +321,13 @@ title('Speech (z-scored by frequency)','fontweight','normal')
 set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 % hold on
 % for jj = 1:length(clusterSigSpeech)
-%    plot(clustXSpeech{jj}(boundarySigSpeech{jj}),clustYSpeech{jj}(boundarySigSpeech{jj}),'k','linewidth',3)   
+%    plot(clustXSpeech{jj}(boundarySigSpeech{jj}),clustYSpeech{jj}(boundarySigSpeech{jj}),'k','linewidth',3)
 % end
 caxis([-maxAbs,maxAbs])
 cmocean('balance')
 
 subplot(3,1,3)
-pcolorjk_djc(binz(2:size(mz_zStim,3)+1),frx,squeeze(nanmean(mz_zStim,2))); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); 
+pcolorjk_djc(binz(2:size(mz_zStim,3)+1),frx,squeeze(nanmean(mz_zStim,2))); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14);
 %text(max(xlim)+diff(xlim)/10,mean(ylim),'ln(z-score power)','fontsize',12,'rotation',90,'horizontalalignment','center')
 cbar = colorbar();
 cbar.Label.String = 'ln(z-score power)';
@@ -332,7 +335,7 @@ title('Stimulus (z-scored by frequency)','fontweight','normal')
 set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 % hold on
 % for jj = 1:length(clusterSigStim)
-%    plot(clustXStim{jj}(boundarySigStim{jj}),clustYStim{jj}(boundarySigStim{jj}),'k','linewidth',3)   
+%    plot(clustXStim{jj}(boundarySigStim{jj}),clustYStim{jj}(boundarySigStim{jj}),'k','linewidth',3)
 % end
 caxis([-maxAbs,maxAbs])
 cmocean('balance')
@@ -356,19 +359,19 @@ maxZsubAbs = max(abs(maxZsub),abs(minZsub));
 avgSpeechBaseClust = nan(size(avgSpeechBase));
 for jj = 1:length(clusterSigSpeech)
     clusterTemp = clusterSigSpeech{jj};
-avgSpeechBaseClust(clusterTemp) = avgSpeechBase(clusterTemp);
+    avgSpeechBaseClust(clusterTemp) = avgSpeechBase(clusterTemp);
 end;
 
 avgStimBaseClust = nan(size(avgStimBase));
 for jj = 1:length(clusterSigStim)
     clusterTemp = clusterSigStim{jj};
-avgStimBaseClust(clusterTemp) = avgStimBase(clusterTemp);
+    avgStimBaseClust(clusterTemp) = avgStimBase(clusterTemp);
 end;
 
 avgSpeechStimClust = nan(size(avgSpeechStim));
 for jj = 1:length(clusterSigStimSpeech)
     clusterTemp = clusterSigStimSpeech{jj};
-avgSpeechStimClust(clusterTemp) = avgSpeechStim(clusterTemp);
+    avgSpeechStimClust(clusterTemp) = avgSpeechStim(clusterTemp);
 end;
 %
 figure
@@ -393,7 +396,7 @@ caxis([-maxZsubAbs,maxZsubAbs])
 cmocean('balance')
 
 subplot(2,2,3)
-pcolorjk_djc(binz(2:size(mz_zSpeech,3)+1),frx,avgStimBase); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); 
+pcolorjk_djc(binz(2:size(mz_zSpeech,3)+1),frx,avgStimBase); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14);
 %text(max(xlim)+diff(xlim)/6,mean(ylim),'ln(z-score power)','fontsize',12,'rotation',90,'horizontalalignment','center')
 cbar = colorbar();
 cbar.Label.String = 'ln(z-score power)';
@@ -401,13 +404,13 @@ title('Stimulus - Baseline (z-scored by frequency)','fontweight','normal')
 set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 % hold on
 % for jj = 1:length(clusterSigSpeech)
-%    plot(clustXSpeech{jj}(boundarySigSpeech{jj}),clustYSpeech{jj}(boundarySigSpeech{jj}),'k','linewidth',3)   
+%    plot(clustXSpeech{jj}(boundarySigSpeech{jj}),clustYSpeech{jj}(boundarySigSpeech{jj}),'k','linewidth',3)
 % end
 caxis([-maxZsubAbs,maxZsubAbs])
 cmocean('balance')
 
 subplot(2,2,4)
-pcolorjk_djc(binz(2:size(mz_zNoST,3)+1),frx,avgStimBaseClust); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); 
+pcolorjk_djc(binz(2:size(mz_zNoST,3)+1),frx,avgStimBaseClust); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14);
 %text(max(xlim)+diff(xlim)/6,mean(ylim),'ln(z-score power)','fontsize',12,'rotation',90,'horizontalalignment','center')
 cbar = colorbar();
 cbar.Label.String = 'ln(z-score power)';
@@ -423,10 +426,10 @@ cmocean('balance')
 % set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 % % hold on
 % % for jj = 1:length(clusterSigStim)
-% %    plot(clustXStim{jj}(boundarySigStim{jj}),clustYStim{jj}(boundarySigStim{jj}),'k','linewidth',3)   
+% %    plot(clustXStim{jj}(boundarySigStim{jj}),clustYStim{jj}(boundarySigStim{jj}),'k','linewidth',3)
 % % end
 % caxis([minZsub,maxZsub])
-% 
+%
 % subplot(3,2,6)
 % pcolorjk_djc(binz(2:size(mz_zNoST,3)+1),frx,avgSpeechStimClust); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar;
 % text(max(xlim)+diff(xlim)/4,mean(ylim),'ln(z-score power)','fontsize',12,'rotation',90,'horizontalalignment','center')
@@ -468,7 +471,7 @@ title('STG - Speech (z-scored by frequency)','fontweight','normal')
 set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 % hold on
 % for jj = 1:length(clusterSigSpeechSTG)
-%    plot(clustXSpeech{jj}(boundarySigSpeech{jj}),clustYSpeech{jj}(boundarySigSpeech{jj}),'k','linewidth',3)   
+%    plot(clustXSpeech{jj}(boundarySigSpeech{jj}),clustYSpeech{jj}(boundarySigSpeech{jj}),'k','linewidth',3)
 % end
 caxis([-maxSTGAbs,maxSTGAbs])
 cmocean('balance')
@@ -483,7 +486,7 @@ title('STG  - Stimulus (z-scored by frequency)','fontweight','normal')
 set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 % hold on
 % for jj = 1:length(clusterSigStimSTG)
-%    plot(clustXStimSTG{jj}(boundarySigStimSTG{jj}),clustYStimSTG{jj}(boundarySigStimSTG{jj}),'k','linewidth',3)   
+%    plot(clustXStimSTG{jj}(boundarySigStimSTG{jj}),clustYStimSTG{jj}(boundarySigStimSTG{jj}),'k','linewidth',3)
 % end
 caxis([-maxSTGAbs,maxSTGAbs])
 cmocean('balance')
@@ -505,57 +508,55 @@ maxSTGAbs=max(abs(maxZsubSTG),abs(minZsubSTG));
 avgSpeechBaseClustSTG = nan(size(avgSpeechBaseSTG));
 for jj = 1:length(clusterSigSpeechSTG)
     clusterTemp = clusterSigSpeechSTG{jj};
-avgSpeechBaseClustSTG(clusterTemp) = avgSpeechBaseSTG(clusterTemp);
+    avgSpeechBaseClustSTG(clusterTemp) = avgSpeechBaseSTG(clusterTemp);
 end;
 
 avgStimBaseClustSTG = nan(size(avgStimBaseSTG));
 for jj = 1:length(clusterSigStimSTG)
     clusterTemp = clusterSigStimSTG{jj};
-avgStimBaseClustSTG(clusterTemp) = avgStimBaseSTG(clusterTemp);
+    avgStimBaseClustSTG(clusterTemp) = avgStimBaseSTG(clusterTemp);
 end;
 
 avgSpeechStimClustSTG = nan(size(avgSpeechStimSTG));
 for jj = 1:length(clusterSigStimSpeechSTG)
     clusterTemp = clusterSigStimSpeechSTG{jj};
-avgSpeechStimClustSTG(clusterTemp) = avgSpeechStimSTG(clusterTemp);
+    avgSpeechStimClustSTG(clusterTemp) = avgSpeechStimSTG(clusterTemp);
 end;
 %
 figure
-subplot(2,2,1)
-pcolorjk_djc(binz(2:size(mz_zNoSTSTG,3)+1),frx,avgSpeechBaseSTG); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14);
+tiledlayout(2,2,'TileSpacing','Compact','Padding','Compact');
+nexttile
+pcolorjk_djc(binz(2:size(mz_zNoSTSTG,3)+1),frx,avgSpeechBaseSTG); shading flat; set(gca,'ydir','normal'); set(gca,'fontsize',14);
 cbar = colorbar();
-cbar.Label.String = 'ln(z-score power)';
 %text(max(xlim)+diff(xlim)/6,mean(ylim),'ln(z-score power)','fontsize',12,'rotation',90,'horizontalalignment','center')
 title('STG Speech - Baseline (z-scored by frequency) ','fontweight','normal')
 set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 caxis([-maxSTGAbs,maxSTGAbs])
 cmocean('balance')
 
-subplot(2,2,2)
-pcolorjk_djc(binz(2:size(mz_zNoSTSTG,3)+1),frx,avgSpeechBaseClustSTG); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14);
+nexttile
+pcolorjk_djc(binz(2:size(mz_zNoSTSTG,3)+1),frx,avgSpeechBaseClustSTG); shading flat; set(gca,'ydir','normal'); set(gca,'fontsize',14);
 cbar = colorbar();
-cbar.Label.String = 'ln(z-score power)';
 %text(max(xlim)+diff(xlim)/6,mean(ylim),'ln(z-score power)','fontsize',12,'rotation',90,'horizontalalignment','center')
 title('STG Speech - Baseline (z-scored by frequency) Significant differences','fontweight','normal')
 set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 caxis([-maxSTGAbs,maxSTGAbs])
 cmocean('balance')
 
-subplot(2,2,3)
-pcolorjk_djc(binz(2:size(mz_zSpeechSTG,3)+1),frx,avgStimBaseSTG); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14);
+nexttile
+pcolorjk_djc(binz(2:size(mz_zSpeechSTG,3)+1),frx,avgStimBaseSTG); shading flat; set(gca,'ydir','normal');  set(gca,'fontsize',14);
 %text(max(xlim)+diff(xlim)/6,mean(ylim),'ln(z-score power)','fontsize',12,'rotation',90,'horizontalalignment','center')
 cbar = colorbar();
-cbar.Label.String = 'ln(z-score power)';
 title('STG Stimulus - Baseline (z-scored by frequency)','fontweight','normal')
 set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 % hold on
 % for jj = 1:length(clusterSigSpeech)
-%    plot(clustXSpeech{jj}(boundarySigSpeech{jj}),clustYSpeech{jj}(boundarySigSpeech{jj}),'k','linewidth',3)   
+%    plot(clustXSpeech{jj}(boundarySigSpeech{jj}),clustYSpeech{jj}(boundarySigSpeech{jj}),'k','linewidth',3)
 % end
 caxis([-maxSTGAbs,maxSTGAbs])
 cmocean('balance')
 
-subplot(2,2,4)
+nexttile
 pcolorjk_djc(binz(2:size(mz_zNoSTSTG,3)+1),frx,avgStimBaseClustSTG); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14);
 %text(max(xlim)+diff(xlim)/4,mean(ylim),'ln(z-score power)','fontsize',12,'rotation',90,'horizontalalignment','center')
 cbar = colorbar();
@@ -572,10 +573,10 @@ cmocean('balance')
 % set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 % % hold on
 % % for jj = 1:length(clusterSigStim)
-% %    plot(clustXStim{jj}(boundarySigStim{jj}),clustYStim{jj}(boundarySigStim{jj}),'k','linewidth',3)   
+% %    plot(clustXStim{jj}(boundarySigStim{jj}),clustYStim{jj}(boundarySigStim{jj}),'k','linewidth',3)
 % % end
 % caxis([minZsubSTG,maxZsubSTG])
-% 
+%
 % subplot(3,2,6)
 % pcolorjk_djc(binz(2:size(mz_zStimSTG,3)+1),frx,avgSpeechStimClustSTG); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar;
 % text(max(xlim)+diff(xlim)/4,mean(ylim),'ln(z-score power)','fontsize',12,'rotation',90,'horizontalalignment','center')
@@ -617,7 +618,7 @@ title('IFG - Speech (z-scored by frequency) with significant clusters','fontweig
 set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 % hold on
 % for jj = 1:length(clusterSigSpeechIFG)
-%    plot(clustXSpeechIFG{jj}(boundarySigSpeechIFG{jj}),clustYSpeechIFG{jj}(boundarySigSpeechIFG{jj}),'k','linewidth',3)   
+%    plot(clustXSpeechIFG{jj}(boundarySigSpeechIFG{jj}),clustYSpeechIFG{jj}(boundarySigSpeechIFG{jj}),'k','linewidth',3)
 % end
 caxis([-maxIFGabs,maxIFGabs])
 cmocean('balance')
@@ -631,7 +632,7 @@ title('IFG - Stimulus (z-scored by frequency) with significant clusters','fontwe
 set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 % hold on
 % for jj = 1:length(clusterSigStimIFG)
-%    plot(clustXStimIFG{jj}(boundarySigStimIFG{jj}),clustYStimIFG{jj}(boundarySigStimIFG{jj}),'k','linewidth',3)   
+%    plot(clustXStimIFG{jj}(boundarySigStimIFG{jj}),clustYStimIFG{jj}(boundarySigStimIFG{jj}),'k','linewidth',3)
 % end
 caxis([-maxIFGabs,maxIFGabs])
 cmocean('balance')
@@ -653,58 +654,56 @@ maxIFGabs = max(abs(minZsubIFG),abs(maxZsubIFG));
 avgSpeechBaseClustIFG = nan(size(avgSpeechBaseIFG));
 for jj = 1:length(clusterSigSpeechIFG)
     clusterTemp = clusterSigSpeechIFG{jj};
-avgSpeechBaseClustIFG(clusterTemp) = avgSpeechBaseIFG(clusterTemp);
+    avgSpeechBaseClustIFG(clusterTemp) = avgSpeechBaseIFG(clusterTemp);
 end;
 
 avgStimBaseClustIFG = nan(size(avgStimBaseIFG));
 for jj = 1:length(clusterSigStimIFG)
     clusterTemp = clusterSigStimIFG{jj};
-avgStimBaseClustIFG(clusterTemp) = avgStimBaseIFG(clusterTemp);
+    avgStimBaseClustIFG(clusterTemp) = avgStimBaseIFG(clusterTemp);
 end;
 
 avgSpeechStimClustIFG = nan(size(avgSpeechStimIFG));
 for jj = 1:length(clusterSigStimSpeechIFG)
     clusterTemp = clusterSigStimSpeechIFG{jj};
-avgSpeechStimClustIFG(clusterTemp) = avgSpeechStimIFG(clusterTemp);
+    avgSpeechStimClustIFG(clusterTemp) = avgSpeechStimIFG(clusterTemp);
 end;
 %
 figure
-subplot(2,2,1)
-pcolorjk_djc(binz(2:size(mz_zNoSTIFG,3)+1),frx,avgSpeechBaseIFG); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); 
+tiledlayout(2,2,'TileSpacing','Compact','Padding','Compact');
+nexttile
+pcolorjk_djc(binz(2:size(mz_zNoSTIFG,3)+1),frx,avgSpeechBaseIFG); shading flat; set(gca,'ydir','normal'); set(gca,'fontsize',14);
 cbar = colorbar;
-cbar.Label.String = 'ln(z-score power)';
 %text(max(xlim)+diff(xlim)/4,mean(ylim),'ln(z-score power)','fontsize',12,'rotation',90,'horizontalalignment','center')
 title('IFG Speech - Baseline (z-scored by frequency) ','fontweight','normal')
 set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 caxis([-maxIFGabs,maxIFGabs])
 cmocean('balance')
 
-subplot(2,2,2)
-pcolorjk_djc(binz(2:size(mz_zNoSTIFG,3)+1),frx,avgSpeechBaseClustIFG); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14);
+nexttile
+pcolorjk_djc(binz(2:size(mz_zNoSTIFG,3)+1),frx,avgSpeechBaseClustIFG); shading flat; set(gca,'ydir','normal');set(gca,'fontsize',14);
 cbar = colorbar;
-cbar.Label.String = 'ln(z-score power)';
 %text(max(xlim)+diff(xlim)/4,mean(ylim),'ln(z-score power)','fontsize',12,'rotation',90,'horizontalalignment','center')
 title('IFG Speech - Baseline (z-scored by frequency) Significant differences','fontweight','normal')
 set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 caxis([-maxIFGabs,maxIFGabs])
 cmocean('balance')
 
-subplot(2,2,3)
-pcolorjk_djc(binz(2:size(mz_zSpeechIFG,3)+1),frx,avgStimBaseIFG); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14);
+nexttile
+pcolorjk_djc(binz(2:size(mz_zSpeechIFG,3)+1),frx,avgStimBaseIFG); shading flat; set(gca,'ydir','normal'); set(gca,'fontsize',14);
 cbar = colorbar;
-cbar.Label.String = 'ln(z-score power)';
 %text(max(xlim)+diff(xlim)/4,mean(ylim),'ln(z-score power)','fontsize',12,'rotation',90,'horizontalalignment','center')
 title('IFG Stimulus - Baseline (z-scored by frequency)','fontweight','normal')
 set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 % hold on
 % for jj = 1:length(clusterSigSpeech)
-%    plot(clustXSpeech{jj}(boundarySigSpeech{jj}),clustYSpeech{jj}(boundarySigSpeech{jj}),'k','linewidth',3)   
+%    plot(clustXSpeech{jj}(boundarySigSpeech{jj}),clustYSpeech{jj}(boundarySigSpeech{jj}),'k','linewidth',3)
 % end
 caxis([-maxIFGabs,maxIFGabs])
 cmocean('balance')
 
-subplot(2,2,4)
-pcolorjk_djc(binz(2:size(mz_zNoSTIFG,3)+1),frx,avgStimBaseClustIFG); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); 
+nexttile
+pcolorjk_djc(binz(2:size(mz_zNoSTIFG,3)+1),frx,avgStimBaseClustIFG); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14);
 cbar = colorbar;
 cbar.Label.String = 'ln(z-score power)';
 %text(max(xlim)+diff(xlim)/4,mean(ylim),'ln(z-score power)','fontsize',12,'rotation',90,'horizontalalignment','center')
@@ -712,7 +711,7 @@ title('Stim - Baseline (z-scored by frequency) Significant differences','fontwei
 set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 caxis([-maxIFGabs,maxIFGabs])
 cmocean('balance')
-% 
+%
 % subplot(3,2,5)
 % pcolorjk_djc(binz(2:size(mz_zStimIFG,3)+1),frx,avgSpeechStimIFG); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14);
 % cbar = colorbar;
@@ -722,10 +721,10 @@ cmocean('balance')
 % set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 % % hold on
 % % for jj = 1:length(clusterSigStim)
-% %    plot(clustXStim{jj}(boundarySigStim{jj}),clustYStim{jj}(boundarySigStim{jj}),'k','linewidth',3)   
+% %    plot(clustXStim{jj}(boundarySigStim{jj}),clustYStim{jj}(boundarySigStim{jj}),'k','linewidth',3)
 % % end
 % caxis([minZsubIFG,maxZsubIFG])
-% 
+%
 % subplot(3,2,6)
 % pcolorjk_djc(binz(2:size(mz_zStimIFG,3)+1),frx,avgSpeechStimClustIFG); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar;
 % text(max(xlim)+diff(xlim)/4,mean(ylim),'ln(z-score power)','fontsize',12,'rotation',90,'horizontalalignment','center')
@@ -733,43 +732,107 @@ cmocean('balance')
 % set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
 % caxis([minZsubIFG,maxZsubIFG])
 
+
+figure
+
 tempFig = gcf;
 tempFig.Position = [839 109 1408 1229];
 if savePlots
     exportgraphics(tempFig,fullfile(folderFigures,pt,[pt '_zscore_power_diff_IFG.png']),'Resolution',600)
     exportgraphics(tempFig,fullfile(folderFigures,pt,[pt '_zscore_power_diff_IFG.eps']))
 end
+
+%% plot condensed power
+
+
+mz_zStimSTG_gamma = permute(squeeze(mean((mz_zStimSTG(frx>=50,:,:)),1)),[2,1]);
+mz_zNoSTSTG_gamma = permute(squeeze(mean((mz_zNoSTSTG(frx>=50,:,:)),1)),[2,1]);
+mz_zStim_gamma = permute(squeeze(mean((mz_zStim(frx>=50,:,:)),1)),[2,1]);
+mz_zNoST_gamma = permute(squeeze(mean((mz_zNoST(frx>=50,:,:)),1)),[2,1]);
+
+binzPlotSTG = binz(2:size(mz_zStimSTG_gamma,1)+1);
+binzPlotTotal = binz(2:size(mz_zStim_gamma,1)+1);
+
+
+[clustersSpeechSTG_gamma, pValuesSpeechSTG_gamma, tSumsSpeechSTG_gamma, permutationDistributionSpeechSTG_gamma] = permutest(mz_zStimSTG_gamma,mz_zNoSTSTG_gamma,false,[],[],1);
+[clustersSpeech_gamma, pValuesSpeech_gamma, tSumsSpeech_gamma, permutationDistributionSpeech_gamma] = permutest(mz_zStim_gamma,mz_zNoST_gamma,false,[],[],1);
+
+figure
+tiledlayout(2,1,'TileSpacing','Compact','Padding','Compact');
+nexttile
+plot(binz(2:size(mz_zStim_gamma,1)+1),mean(mz_zStim_gamma,2),'linewidth',2)
+hold on
+plot(binz(2:size(mz_zNoST_gamma,1)+1),mean(mz_zNoST_gamma,2),'linewidth',2)
+
+for signifClust = 1:length(pValuesSpeech_gamma)
+    if pValuesSpeech_gamma(signifClust) <= 0.05
+        sigstar([binzPlotTotal(clustersSpeech_gamma{signifClust}(1)),binzPlotTotal(clustersSpeech_gamma{signifClust}(end))])
+        
+    end
+end
+title('All Electrodes Power Stimulus vs. Baseline')
+set(gca,'fontsize',14)
+tempFig = gca;
+xlimsTotal = tempFig.XLim;
+
+
+nexttile
+plot(binz(2:size(mz_zStimSTG_gamma,1)+1),mean(mz_zStimSTG_gamma,2),'linewidth',2)
+hold on
+plot(binz(2:size(mz_zNoSTSTG_gamma,1)+1),mean(mz_zNoSTSTG_gamma,2),'linewidth',2)
+
+for signifClust = 1:length(pValuesSpeechSTG_gamma)
+    if pValuesSpeechSTG_gamma(signifClust) <= 0.05
+        sigstar([binzPlotSTG(clustersSpeechSTG_gamma{signifClust}(1)),binzPlotSTG(clustersSpeechSTG_gamma{signifClust}(end))])
+        
+    end
+end
+
+legend({'Stimulus','Baseline'})
+title('STG Gamma Power Stimulus vs. Baseline')
+xlim(xlimsTotal)
+
+xlabel('Distance (mm)')
+ylabel('Averaged power (ln z-score)')
+set(gca,'fontsize',14);
+tempFig = gcf;
+tempFig.Position = [839 210 581 1128];
+if savePlots
+    exportgraphics(tempFig,fullfile(folderFigures,pt,[pt '_gamma.png']),'Resolution',600)
+    exportgraphics(tempFig,fullfile(folderFigures,pt,[pt '_gamma.eps']))
+end
+
 %%
-figure('color','w','position',[277 223 1095 963]); colormap(parula);
-
-% Plot confusion matrix of bipolar distances between all pairs
-subplot(8,2,1:2:5); pcolorjk_djc(Mbpdist); shf; hold on; plot([1 1; 1 256]',[1 256;256 256]','k-','linewidth',1); plot([1 1 1 128 256],[1 128 256 256 256],'k.'); %plot([1 128 256 256 256]/2,[1 1 1 128 256]/2,'k.');
-axis equal off; set(gca,'ydir','reverse','xdir','reverse'); colormap(gca,flipud(cmocean('deep'))); colorbar('fontsize',12); title('Bipolar pair distance','fontsize',14,'fontweight','normal')
-
-% Histogram of number of pairs per bin
-subplot(8,2,7); histogram(make1d(Mbpdist),0:binsz:85,'facecolor',.5*[1 1 1]); set(gca,'fontsize',12); xlabel('Binned bipolar distance (mm)','fontsize',14);
-ylabel('Counts/bin','fontweight','normal'); axis tight; grid on; cb=colorbar; set(cb,'visible','off');
-
-% line plot of same as above, zscored
-subplot(2,2,2); hold on; cmo=fliplr(cmocean('thermal',nfrx+round(nfrx)*.1)); colormap(gca,cmo); cb=colorbar; set(cb,'ticks',0:.25:1,'ticklabels',0:50:200,'fontsize',12)
-for i=nfrx:-1:1; nns=~isnan(mz(i,:));
-    plot(binz(2:size(mz_z,2)+1),mz_z(i,:),'-','color',cmo(i,:),'linewidth',1);
-end; grid on; axis tight;
-set(gca,'fontsize',14); ylabel('ln(power)'); xlabel('Bipolar distance (mm)','fontsize',14);
-text(max(xlim)+diff(xlim)/4,mean(ylim),'Frequency (Hz)','fontsize',12,'rotation',90,'horizontalalignment','center')
-
-subplot(2,2,3);
-pcolorjk_djc(binz(2:size(mz_z,2)+1),frx,mz_z); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar;
-text(max(xlim)+diff(xlim)/4,mean(ylim),'ln(power)','fontsize',12,'rotation',90,'horizontalalignment','center')
-title('(z-scored by frequency)','fontweight','normal')
-set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
-
-sp(2,2,4)
-[mx,my]=meshgrid(binz(2:size(mz_z,2)+1)+binsz/2,frx);
-surf(mx,my,(mz_z)); xlabel('Bipolar distance (mm)','fontsize',14); ylabel('Frequency (Hz)','fontsize',14); zlabel('ln (Power)','fontsize',14)
-view(140,25); set(gca,'xdir','reverse','ydir','reverse','ytick',ft,'yticklabel',ftl,'fontsize',14); xlim([binsz/2 85]);  axis tight;
-set(gca,'yscale','log');
-title('(z-scored by frequency)','fontweight','normal')%set(gca,'yscale','linear'); set(gca,'zscale','log'); set(gca,'zscale','linear')
-%ylim([0 30]); %zlim([.035 3]); caxis([.035 3]); %low freqs only
-%ylim([30 200]); %zlim([0 0.035]); caxis([0 0.035]); %high freqs only
-ylim([0 200]);
+% figure('color','w','position',[277 223 1095 963]); colormap(parula);
+% 
+% % Plot confusion matrix of bipolar distances between all pairs
+% subplot(8,2,1:2:5); pcolorjk_djc(Mbpdist); shf; hold on; plot([1 1; 1 256]',[1 256;256 256]','k-','linewidth',1); plot([1 1 1 128 256],[1 128 256 256 256],'k.'); %plot([1 128 256 256 256]/2,[1 1 1 128 256]/2,'k.');
+% axis equal off; set(gca,'ydir','reverse','xdir','reverse'); colormap(gca,flipud(cmocean('deep'))); colorbar('fontsize',12); title('Bipolar pair distance','fontsize',14,'fontweight','normal')
+% 
+% % Histogram of number of pairs per bin
+% subplot(8,2,7); histogram(make1d(Mbpdist),0:binsz:85,'facecolor',.5*[1 1 1]); set(gca,'fontsize',12); xlabel('Binned bipolar distance (mm)','fontsize',14);
+% ylabel('Counts/bin','fontweight','normal'); axis tight; grid on; cb=colorbar; set(cb,'visible','off');
+% 
+% % line plot of same as above, zscored
+% subplot(2,2,2); hold on; cmo=fliplr(cmocean('thermal',nfrx+round(nfrx)*.1)); colormap(gca,cmo); cb=colorbar; set(cb,'ticks',0:.25:1,'ticklabels',0:50:200,'fontsize',12)
+% for i=nfrx:-1:1; nns=~isnan(mz(i,:));
+%     plot(binz(2:size(mz_z,2)+1),mz_z(i,:),'-','color',cmo(i,:),'linewidth',1);
+% end; grid on; axis tight;
+% set(gca,'fontsize',14); ylabel('ln(power)'); xlabel('Bipolar distance (mm)','fontsize',14);
+% text(max(xlim)+diff(xlim)/4,mean(ylim),'Frequency (Hz)','fontsize',12,'rotation',90,'horizontalalignment','center')
+% 
+% subplot(2,2,3);
+% pcolorjk_djc(binz(2:size(mz_z,2)+1),frx,mz_z); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar;
+% text(max(xlim)+diff(xlim)/4,mean(ylim),'ln(power)','fontsize',12,'rotation',90,'horizontalalignment','center')
+% title('(z-scored by frequency)','fontweight','normal')
+% set(gca,'yscale','log','ytick',ft,'yticklabel',ftl);
+% 
+% sp(2,2,4)
+% [mx,my]=meshgrid(binz(2:size(mz_z,2)+1)+binsz/2,frx);
+% surf(mx,my,(mz_z)); xlabel('Bipolar distance (mm)','fontsize',14); ylabel('Frequency (Hz)','fontsize',14); zlabel('ln (Power)','fontsize',14)
+% view(140,25); set(gca,'xdir','reverse','ydir','reverse','ytick',ft,'yticklabel',ftl,'fontsize',14); xlim([binsz/2 85]);  axis tight;
+% set(gca,'yscale','log');
+% title('(z-scored by frequency)','fontweight','normal')%set(gca,'yscale','linear'); set(gca,'zscale','log'); set(gca,'zscale','linear')
+% %ylim([0 30]); %zlim([.035 3]); caxis([.035 3]); %low freqs only
+% %ylim([30 200]); %zlim([0 0.035]); caxis([0 0.035]); %high freqs only
+% ylim([0 200]);

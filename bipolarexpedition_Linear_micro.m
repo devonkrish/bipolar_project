@@ -22,7 +22,7 @@ ft=[2 5 10 20 50 100 200]; ftl=cellstr(num2str(ft')); %frequency labels for plot
 
 %which patients are ok to do
 okpt=false(1,length(pts));
-okpt([4 12:16 19:23])=1;
+okpt([12 14])=1;
 % how many bipolar steps to loop through
 maxbpd=5;
 
@@ -265,7 +265,6 @@ end
 
 
 %%
-
 freqBandsFig = figure;
 tiledlayout(3,2,'TileSpacing','Compact','Padding','Compact');
 
@@ -312,15 +311,12 @@ for index = 1:size(freqEdges,1)
         
         if sum(indsInterest)==1
             signalInt = squeeze(ps(bpd+1,h,indsInterest)),2;
-            signalIntMean = (mean(signalInt));
-            SEM = std(signalInt,[],2)/sqrt(length(h));
             
         else
             signalInt = mean(squeeze(ps(bpd+1,h,indsInterest)),2);
-            signalIntMean = (mean(signalInt));
-            SEM = std(signalInt,[],1)/sqrt(length(h));
         end
-        
+        signalIntMean = (mean(signalInt));
+        SEM = std(signalInt,[],1)/sqrt(length(h));
         errorbar(bpd,signalIntMean,SEM,'o')
         hold on
         
@@ -334,84 +330,6 @@ tempFig = gcf;
 if savePlots
     exportgraphics(tempFig,fullfile(folderFigures,['bipolar_linear_scatter_avg.png']),'Resolution',600)
     exportgraphics(tempFig,fullfile(folderFigures,['bipolar_linear_scatter_avg.eps']))
-    
-end
-
-%%
-freqBandsFigSwarm = figure;
-tiledlayout(3,2,'TileSpacing','Compact','Padding','Compact');
-
-% delta has to be 2-4, since thats the frx above
-freqEdges = [2 4;4 8;8 13; 13 25;25 30;50 200];
-numEls = length(h);
-c= cmocean('matter',numEls);
-
-
-%theta (4–8Hz),alpha(8–12Hz),lowbeta(13–20Hz), highbeta(20–30Hz),beta(13–30Hz),broadbandgamma(50–200Hz),
-for index = 1:size(freqEdges,1)
-    nexttile
-    indsInterest = (frx <= freqEdges(index,2)) & (frx > freqEdges(index,1));
-    
-    ps=nan(maxbpd,length(pts),length(frx));
-    for bpd=[1:maxbpd 0]
-        h=find(hasmat(bpd+1,:));
-        
-        if percentPowPlot
-            for p=h
-                ps_=SS{bpd+1,p};
-                
-                ps_=nanmean(nanmean((ps_(:,Sokc{bpd+1,p},:)),3),2);
-                total_pow = sum(ps_);
-                ps_=100*(ps_)./total_pow; % percent total power
-                ps(bpd+1,p,:)=log(ps_);
-            end
-            
-        elseif zscorePlot
-            for p=h
-                ps_=SS{bpd+1,p};
-                
-                ps_=nanmean(nanmean(log(ps_(:,Sokc{bpd+1,p},:)),3),2);
-                ps_=(ps_-mean(ps_))/std(ps_); %z-score
-                ps(bpd+1,p,:)=ps_;
-            end
-            
-        elseif averagePlot
-            for p=h
-                ps_=SS{bpd+1,p};
-                ps(bpd+1,p,:)=mean(mean(log(ps_(:,Sokc{bpd+1,p},:)),3),2); % this was one Jon originally usd
-                
-            end
-            
-        end
-        
-        if sum(indsInterest)==1
-            signalInt = squeeze(ps(bpd+1,h,indsInterest));
-            signalIntMean = (mean(signalInt));
-            SEM = std(signalInt,[],2)/sqrt(length(h));
-            
-        else
-            signalInt = mean(squeeze(ps(bpd+1,h,indsInterest)),2);
-            signalIntMean = (mean(signalInt));
-            SEM = std(signalInt,[],1)/sqrt(length(h));
-        end
-        if bpd == 0
-            figureInds = swarmchart(bpd,signalInt,[],c,'filled');
-        else
-            swarmchart(bpd,signalInt,[],c,'filled');
-        end
-        hold on
-        
-    end;  grid on; set(gca,'xlim',[-1 6]);  set(gca,'xscale','linear'); title(['Frequency ' num2str(freqEdges(index,1)) '-' num2str(freqEdges(index,2)) ' Hz']);
-    
-end;
-xlabel('Bipolar distance');
-ylabel('ln(power)')
-%legend(figureInds);
-tempFig = gcf;
-
-if savePlots
-    exportgraphics(tempFig,fullfile(folderFigures,['bipolar_linear_swarm_avg.png']),'Resolution',600)
-    exportgraphics(tempFig,fullfile(folderFigures,['bipolar_linear_swarm_avg.eps']))
     
 end
 
