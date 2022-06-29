@@ -2,18 +2,10 @@
 %%
 savePlots = 1;
 
-folderDataBase = '/Users/davidcaldwell/Box/KLEENLAB/David/Results/June results/';
+folderDataBase = '/Users/davidcaldwell/Box/KLEENLAB/David/Results/June results fewer subj/';
 folderFiguresCell = {fullfile(folderDataBase,'LL20'),fullfile(folderDataBase,'LL40'),fullfile(folderDataBase,'LL100'),fullfile(folderDataBase,'absDer')};
 saveName = {'LL20','LL40','LL100','absDer'};
 statsStruct = struct;
-
-subjCell = [];
-for jj = 1:length(permResultsCell)
-    subjCell{end+1} = permResultsCell{jj}.subj;
-end
-
-numEls = length(permResultsCell);
-c= cmocean('thermal',numEls);
 
 % load in data
 for jj = 1:length(saveName)
@@ -21,6 +13,16 @@ for jj = 1:length(saveName)
     folderFigures = folderFiguresCell{jj};
     dataFile  = fullfile(folderFigures,[processedInt '.mat']);
     load(dataFile);
+    
+    %%
+    subjCell = [];
+    for jjj = 1:length(permResultsCell)
+        subjCell{end+1} = permResultsCell{jjj}.subj;
+    end
+    
+    numEls = length(permResultsCell);
+    c= cmocean('thermal',numEls);
+    disp(numEls);
     
     %%
     numChannelsVec = [];
