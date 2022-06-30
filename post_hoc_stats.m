@@ -7,6 +7,8 @@ folderFiguresCell = {fullfile(folderDataBase,'LL20'),fullfile(folderDataBase,'LL
 saveName = {'LL20','LL40','LL100','absDer'};
 statsStruct = struct;
 
+outputTable = table;
+
 % load in data
 for jj = 1:length(saveName)
     processedInt = saveName{jj};
@@ -21,7 +23,8 @@ for jj = 1:length(saveName)
     end
     
     numEls = length(permResultsCell);
-    c= cmocean('thermal',numEls);
+   % c= cmocean('thermal',numEls);
+   c = brewermap(numEls,'Set3');
     disp(numEls);
     
     %%
@@ -58,7 +61,7 @@ for jj = 1:length(saveName)
     %% plot
     
     colorHist = cmocean('thermal',2);
-    colorParallel = cmocean('matter',numEls);
+    colorParallel = brewermap(numEls,'Set3');
     
     histFig = figure;
     tiledlayout(2,2,'TileSpacing','Compact','Padding','Compact');
@@ -81,31 +84,51 @@ for jj = 1:length(saveName)
     set(gca,'FontSize',14)
     xlim([0 max([numChannelsVec(:);numChannelsVecSub(:)])+3])
     
+    colormapSpecificWidth = [];
+    for jjj = 1:length(subjSpecific)
+        ind = find(strcmp(subjCell,subjSpecific(jjj)));
+        colormapSpecificWidth = [colormapSpecificWidth; colorParallel(ind,:)];
+    end
+    
     ax= nexttile;
-    ax.ColorOrder  = colorParallel;
     grid(ax,'on')
     xlim([0.5 2.5])
     ylim([0 max([meanWidthVec(:);meanWidthVecSub(:)])+10])
     hold on
-    p1=parallelcoords([meanWidthVec;meanWidthVecSub]','group',[1:length(meanWidthVec)],'Labels',{'High density','Sub-sampled'},'LineWidth',2,'Marker','o');
+    p1=plot([1,2],[meanWidthVec;meanWidthVecSub]','-o','LineWidth',4);
+    
     xlabel('High density vs. Sub-sampled')
     ylabel('Mean width')
     title([processedInt ' mean spike subject wise comparison'])
     set(gca,'FontSize',14)
     ax.XTickLabel ={'','High density','','Sub-sampled',''};
+    colororder(gca,colormapSpecificWidth)
+    for colorInd = 1:length(meanWidthVec)
+        p1(colorInd).MarkerFaceColor = colormapSpecificWidth(colorInd,:);
+    end
+    
+    colormapSpecificNum = [];
+    for jjj = 1:length(subjSpecific)
+        ind = find(strcmp(subjCell,subjSpecific(jjj)));
+        colormapSpecificNum = [colormapSpecificNum; colorParallel(ind,:)];
+    end
+
     
     ax = nexttile;
-    ax.ColorOrder  = colorParallel;
     xlim([0.5 2.5])
     grid(ax,'on')
     ylim([0 max([numChannelsVec(:);numChannelsVecSub(:)])+3])
     hold on
-    p2=parallelcoords([numChannelsVec;numChannelsVecSub]','group',[1:length(numChannelsVec)],'Labels',{'High density','Sub-sampled'},'LineWidth',2,'Marker','o');
+    p2=plot([1,2],[numChannelsVec;numChannelsVecSub]','-o','LineWidth',4);
     ylabel('Number of channels with significant spikes')
     xlabel('High density vs. Sub-sampled')
     title([processedInt ' number spike channels subject wise comparison'])
     set(gca,'FontSize',14)
     ax.XTickLabel ={'','High density','','Sub-sampled',''};
+    colororder(gca,colormapSpecificNum)
+    for colorInd = 1:length(numChannelsVec)
+        p2(colorInd).MarkerFaceColor = colormapSpecificNum(colorInd,:);
+    end
     
     if savePlots
         exportgraphics(histFig,fullfile(folderFigures,[processedInt '_2x2.png']),'Resolution',600)
@@ -134,6 +157,7 @@ end
 %%
 figure
 tiledlayout(2,1,'TileSpacing','Compact','Padding','Compact');
+grid(ax,'on')
 nexttile
 hold on
 for jj = 1:length(saveName)
@@ -150,6 +174,7 @@ xticks([0 1 2 3 4 5])
 xticklabels({'','LL20','LL40','LL100','Absolute Derivative',''})
 
 nexttile
+grid(ax,'on')
 hold on
 for jj = 1:length(saveName)
     subjSpecific = statsStruct.numChannelsSID{jj};
@@ -167,9 +192,107 @@ xlabel('condition')
 
 tempFig = gcf;
 if savePlots
+    exportgraphics(tempFig,fullfile(folderDataBase,['swarm_across_conditions.png']),'Resolution',600)
+    exportgraphics(tempFig,fullfile(folderDataBase,['swarm_across_conditions.eps']))
+end
+
+%%
+
+statsCell = {};
+figure
+tiledlayout(2,1,'TileSpacing','Compact');
+ax = nexttile;
+grid(ax,'on')
+
+hold on
+
+for jj = 1:length(saveName)
+    subjSpecific = statsStruct.meanWidthSID{jj};
+  
+    colormapSpecific = [];
+    for jjj = 1:length(subjSpecific)
+        ind = find(strcmp(subjCell,subjSpecific(jjj)));
+        colormapSpecific = [colormapSpecific; c(ind,:)];
+        statsCell{ind}.cmap = c(ind,:);
+        if jj == 1 
+            statsCell{ind}.data{1} = statsStruct.meanWidthDiff{jj}(jjj);
+            statsCell{ind}.cond{1} = jj;
+        else
+            statsCell{ind}.data{end+1} = statsStruct.meanWidthDiff{jj}(jjj);
+            statsCell{ind}.cond{end+1} = jj;
+                        
+        end
+    end
+end
+
+for jjj =  1:length(subjCell)
+    if ~isempty(statsCell{jjj})
+        linePlotPostHoc(jjj) = plot(cell2mat(statsCell{jjj}.cond),cell2mat(statsCell{jjj}.data),'-o','linewidth',4);
+    end
+end
+colororder(colormapSpecific);
+for colorInd = 1:length(subjCell)
+    if ~isempty(statsCell{colorInd})
+        linePlotPostHoc(colorInd).MarkerFaceColor = c(colorInd,:);
+    end
+end
+
+title('Differences in Mean Spike Duration by Condition')
+ylabel('Difference in Mean Spike Duration (ms)')
+xticks([0 1 2 3 4 5])
+xlim([0 5])
+xticklabels({'','','','','',''})
+%
+ax = nexttile;
+grid(ax,'on')
+hold on
+for jj = 1:length(saveName)
+    subjSpecific = statsStruct.numChannelsSID{jj};
+  
+    colormapSpecificN = [];
+    for jjj = 1:length(subjSpecific)
+        ind = find(strcmp(subjCell,subjSpecific(jjj)));
+        colormapSpecificN = [colormapSpecificN; c(ind,:)];
+        statsCell{ind}.cmapN = c(ind,:);
+        if jj == 1 
+            statsCell{ind}.dataN{1} = statsStruct.numChannelsDiff{jj}(jjj);
+            statsCell{ind}.condN{1} = jj;
+        else
+            statsCell{ind}.dataN{end+1} = statsStruct.numChannelsDiff{jj}(jjj);
+            statsCell{ind}.condN{end+1} = jj;
+                        
+        end
+    end
+end
+
+for jjj =  1:length(subjCell)
+    if ~isempty(statsCell{jjj})
+        linePlotPostHocN(jjj) = plot(cell2mat(statsCell{jjj}.condN),cell2mat(statsCell{jjj}.dataN),'-o','linewidth',4);
+    end
+end
+colororder(colormapSpecificN);
+for colorInd = 1:length(subjCell)
+    if ~isempty(statsCell{colorInd})
+        linePlotPostHocN(colorInd).MarkerFaceColor = c(colorInd,:);
+    end
+end
+
+
+
+title('Differences in Number of Spikes Detected by Condition')
+ylabel('Number of channels')
+xlabel('Condition')
+xticks([0 1 2 3 4 5])
+xlim([0 5])
+xticklabels({'','LL20','LL40','LL100','Absolute Derivative',''})
+
+tempFig = gcf;
+tempFig.Position = [986 636 581 702];
+if savePlots
     exportgraphics(tempFig,fullfile(folderDataBase,['across_conditions.png']),'Resolution',600)
     exportgraphics(tempFig,fullfile(folderDataBase,['across_conditions.eps']))
 end
+%
 
 
 %%

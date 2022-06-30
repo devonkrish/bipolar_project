@@ -6,11 +6,12 @@ onlystrips=false;
 savePlots = true;
 countNumWindows = false;
 % plotting for scatter + SEM across conditions
-percentPowPlot = true;
+percentPowPlot = false;
 zscorePlot = false;
-averagePlot = false;
+averagePlot = true;
+saveData = false;
 
-folderFigures = '/Users/davidcaldwell/Box/Kleenlab/David/Results/June Results/';
+folderFigures = '/Users/davidcaldwell/Box/Kleenlab/David/Results/June Results fewer subj/';
 
 cm=cool(6); cm(1,:)=[0 0 0];
 datadir='/Volumes/KLEEN_DRIVE/David/Bipolar project/baseline-high-density-data/'; %bandpassfiltered/';
@@ -258,8 +259,8 @@ set(gca,'fontsize',14);
 tempFig = gcf;
 tempFig.Position = [839 210 581 1128];
 if savePlots
-    exportgraphics(tempFig,fullfile(folderFigures,['total_percent_bipolar_linear.png']),'Resolution',600)
-    exportgraphics(tempFig,fullfile(folderFigures,['total_percent_bipolar_linear.eps']))
+    exportgraphics(tempFig,fullfile(folderFigures,['avg_bipolar_linear.png']),'Resolution',600)
+    exportgraphics(tempFig,fullfile(folderFigures,['avg_bipolar_linear.eps']))
     
 end
 
@@ -271,7 +272,7 @@ tiledlayout(3,2,'TileSpacing','Compact','Padding','Compact');
 
 
 % delta has to be 2-4, since thats the frx above
-freqEdges = [2 4;4 8;8 13; 13 25;25 30;50 200];
+freqEdges = [2 4;4 8;8 13; 13 25;25 50;50 200];
 
 %theta (4–8Hz),alpha(8–12Hz),lowbeta(13–20Hz), highbeta(20–30Hz),beta(13–30Hz),broadbandgamma(50–200Hz),
 for index = 1:size(freqEdges,1)
@@ -342,7 +343,7 @@ freqBandsFigSwarm = figure;
 tiledlayout(3,2,'TileSpacing','Compact','Padding','Compact');
 
 % delta has to be 2-4, since thats the frx above
-freqEdges = [2 4;4 8;8 13; 13 25;25 30;50 200];
+freqEdges = [2 4;4 8;8 13; 13 25;25 50;50 200];
 numEls = length(h);
 c= cmocean('matter',numEls);
 
@@ -413,6 +414,116 @@ if savePlots
     exportgraphics(tempFig,fullfile(folderFigures,['bipolar_linear_swarm_avg.png']),'Resolution',600)
     exportgraphics(tempFig,fullfile(folderFigures,['bipolar_linear_swarm_avg.eps']))
     
+end
+%%
+freqBandsFigLine = figure;
+tiledlayout(3,2,'TileSpacing','Compact','Padding','Compact');
+
+% delta has to be 2-4, since thats the frx above
+freqEdges = [2 4;4 8;8 13; 13 25;25 50;50 200];
+numEls = length(h);
+c= brewermap(numEls,'Dark2');
+bipolarList = [0:maxbpd];
+tableOutput = table;
+freqsInterest = {'delta','theta','alpha','beta','gamma','high-gamma'};
+
+subjectVector = [];
+freqsVector = [];
+bpdVector = [];
+powerVector = [];
+
+%theta (4–8Hz),alpha(8–12Hz),lowbeta(13–20Hz), highbeta(20–30Hz),beta(13–30Hz),broadbandgamma(50–200Hz),
+for index = 1:size(freqEdges,1)
+    nexttile
+    indsInterest = (frx <= freqEdges(index,2)) & (frx > freqEdges(index,1));
+    
+    ps=nan(maxbpd,length(pts),length(frx));
+    signalIntVec=[];
+    for bpd=bipolarList
+        h=find(hasmat(bpd+1,:));
+        
+        if percentPowPlot
+            for p=h
+                ps_=SS{bpd+1,p};
+                
+                ps_=nanmean(nanmean((ps_(:,Sokc{bpd+1,p},:)),3),2);
+                total_pow = sum(ps_);
+                ps_=100*(ps_)./total_pow; % percent total power
+                ps(bpd+1,p,:)=log(ps_);
+            end
+            
+        elseif zscorePlot
+            for p=h
+                ps_=SS{bpd+1,p};
+                
+                ps_=nanmean(nanmean(log(ps_(:,Sokc{bpd+1,p},:)),3),2);
+                ps_=(ps_-mean(ps_))/std(ps_); %z-score
+                ps(bpd+1,p,:)=ps_;
+            end
+            
+        elseif averagePlot
+            for p=h
+                ps_=SS{bpd+1,p};
+                ps(bpd+1,p,:)=mean(mean(log(ps_(:,Sokc{bpd+1,p},:)),3),2); % this was one Jon originally usd
+                
+            end
+            
+        end
+        
+        if sum(indsInterest)==1
+            signalInt = squeeze(ps(bpd+1,h,indsInterest));
+            signalIntMean = (mean(signalInt));
+            SEM = std(signalInt,[],2)/sqrt(length(h));
+            
+        else
+            signalInt = mean(squeeze(ps(bpd+1,h,indsInterest)),2)';
+            signalIntMean = (mean(signalInt));
+            SEM = std(signalInt,[],1)/sqrt(length(h));
+        end
+        
+        signalIntVec = [signalIntVec; signalInt];
+        
+        subjectVector = [subjectVector pts(h)'];
+        freqsVector = [freqsVector repmat(freqsInterest(index),length(h),1)'];
+        bpdVector = [bpdVector repmat(bpd,length(h),1)'];
+        powerVector = [powerVector signalInt];
+        
+    end;
+    
+    
+    linePlot = plot(bipolarList,signalIntVec,'-o','LineWidth',2,'MarkerSize',8);
+    hold on
+    colororder(gca,c)
+    for colorInd = 1:length(h)
+        linePlot(colorInd).MarkerFaceColor = c(colorInd,:);
+    end
+    grid on; set(gca,'xlim',[-1 6]);set(gca,'xticklabels','');  set(gca,'xscale','linear'); title(['Frequency ' num2str(freqEdges(index,1)) '-' num2str(freqEdges(index,2)) ' Hz']);
+    
+end;
+xlabel('Bipolar distance');
+ylabel('ln(power)')
+set(gca,'xticklabels',{'','referential','4 mm', '8 mm', '12 mm', '16 mm', '20 mm',''})
+%legend(figureInds);
+tempFig = gcf;
+tempFig.Position= [1000 530 971 808];
+
+if savePlots
+    exportgraphics(tempFig,fullfile(folderFigures,['bipolar_linear_line_avg.png']),'Resolution',600)
+    exportgraphics(tempFig,fullfile(folderFigures,['bipolar_linear_line_avg.eps']))
+    
+end
+
+tableOutput.patient = subjectVector';
+tableOutput.freq = freqsVector';
+tableOutput.bpd = bpdVector';
+tableOutput.power = powerVector';
+
+if saveData
+   save(fullfile(folderFigures,'freqTableData.mat'),'tableOutput'); 
+end
+%%
+if saveData
+    save(fullfile(folderFigures,'bipolarLinear.mat'),'SS','freqEdges','maxbpd','frx','pts','hasmat','percentPowPlot','zscorePlot','averagePlot','savePlots','folderFigures','-v7.3')
 end
 
 %%
