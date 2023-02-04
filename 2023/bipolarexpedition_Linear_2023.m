@@ -147,7 +147,7 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
         
         %% Calculate spectra and put into matrices (bipolarDistance X patient X frequency) aggregated for each patient 
       if any(okc)
-        [trm,frx,s]=bpspectra_Linear(d,sfx,frxrange,okc);
+        [trm,frx,s]=bpspectra_Linear_2023(d,sfx,frxrange,okc);
 
         TRM(bpd+1,p,:)=mean(trm(okc,:),1); % Mean
         TRSD(bpd+1,p,:)=std(trm(okc,:),[],1); %Standard deviation

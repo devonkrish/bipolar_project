@@ -5,11 +5,13 @@
 pt='EC183'; % EC175 and EC183 both have intact 16x16 square grids (channel #s 1:256)
 nchtocheck=128*2; 
 windowstocheck=1:100; %each window is 1 second of data
-binsz=3; % bin size in mm
-xldist=[1 70];
+binsz=1; % bin size in mm
+xldist=[0 70];
+doanglerange=0;
 onlygrids=true;
 onlydepths=false;
 onlystrips=false;
+
 
 cm=cool(6); cm(1,:)=[0 0 0]; 
 datadir='/Volumes/KLEEN_DRIVE/David/Bipolar project/baseline-high-density-data/'; %bandpassfiltered/';
@@ -99,7 +101,7 @@ okc=~badchI; clear x xbch
 %% ALL PAIRS (each vs. all others) analysis and example plot
  d=d(:,:,windowstocheck); clear Straces_allch; %free up RAM by getting rid of whatever won't be used (only using first ___ number of windows)
                  % ***opportunity here to select speech or stim windows
- [M,Mrefave,Mbp_distance,frx,~,Mbp_angle]=bpspectra_EachVsAll(d,sfx,frxrange,em,nchtocheck);
+ [M,Mrefave,Mbp_distance,frx,~,Mbp_angle]=bpspectra_EachVsAll_2023(d,sfx,frxrange,em,nchtocheck);
      % M is bipolarchannel1 X bipolarchannel2 X frx X 1secwindow
  nfrx=length(frx);
   
@@ -112,24 +114,20 @@ okc=~badchI; clear x xbch
 
 
 %% ANGLE RANGE: if desired, subselect bipolar angle within a given range
-doanglerange=0;
 if doanglerange
-    m=M; Md=Mbp_distance; Ma=Mbp_angle; %make a copy (only do this once) in case you want to repeat later with different angle range (start with next line)
+    m=M; Md=Mbp_distance; Ma=Mbp_angle; %make a copy (only do this once) in case you want to repeat later with different angle range (use next chunk of code)
     
-    % anglemin=-90; anglemax=-45;
-    % anglemin=-45; anglemax=  0;
-    % anglemin=  0; anglemax= 45;
     anglemin= 45; anglemax= 90;
     M=m; Mbp_distance=Md; Mbp_angle=Ma; 
     ww=0;
     for c1=1:size(M,1);
     for c2=1:size(M,2);
-    if rad2ang(Mbp_angle(c1,c2))<anglemin || rad2ang(Mbp_angle(c1,c2))>anglemax;
-    Mbp_distance(c1,c2,:,:)=nan;
-    Mbp_angle(c1,c2,:,:)=nan;
-    disp([num2str(c1) ' ' num2str(c2)])
-    ww=ww+1;
-    end
+      if rad2ang(Mbp_angle(c1,c2))<anglemin || rad2ang(Mbp_angle(c1,c2))>anglemax;
+        Mbp_distance(c1,c2,:,:)=nan;
+        Mbp_angle(c1,c2,:,:)=nan;
+        disp([num2str(c1) ' ' num2str(c2)])
+        ww=ww+1;
+      end
     end
     end
     ww
@@ -138,10 +136,10 @@ end
 %% Unstack and line up into 2D matrix to create channels^2 X frequencies for easier indexing-->binning
 mb=[]; 
 mARb=[]; 
-binz=0:binsz:85; % can change binsz PRN at this point to test different bin resolutions on the plots below
+binz=[-1 0:binsz:85]; % can change binsz PRN at this point to test different bin resolutions on the plots below
 clear mx my mz  
 nbinz=length(binz)-1;
-parfor w=windowstocheck; disp(num2str(w)); % parfor here
+parfor w=windowstocheck; disp(num2str(w)); % parfor here to run the windows
     Mflat=[];
       Mflatbp_distance=[];
       Mflatbp_angle=[];
@@ -154,17 +152,22 @@ parfor w=windowstocheck; disp(num2str(w)); % parfor here
     end
     
     %bin by distance and take the mean, creating: frequency X binned distance
-    for i=1:nbinz 
-        mb(:,i,w)=nanmean(Mflat(Mflatbp_distance>=binz(i) & Mflatbp_distance<binz(i+1),:),1);
-   %      binindex_min_ltnmax(i,:)=[binz(i) binz(i+1)];
-        mARb(:,i,w)=nanmean(Mrefaveflat(Mflatbp_distance>=binz(i) & Mflatbp_distance<binz(i+1),:),1);
+       % first for referential (distance = 0)
+    for i=1:nbinz % binz will be including >lower bound and up to and including (<=) upper bound
+        mb  (:,i,w)=nanmean(Mflat      (Mflatbp_distance>binz(i) & Mflatbp_distance<=binz(i+1),:),1); 
+        mARb(:,i,w)=nanmean(Mrefaveflat(Mflatbp_distance>binz(i) & Mflatbp_distance<=binz(i+1),:),1);
     end
+    
     disp([num2str(round(windowstocheck(w)/windowstocheck(end)*100,1)) '% of windows'])
 end; disp('Done')
 
+binz(1)=[]; %remove negative 1, only there to get referential channels (distance=0) for the parfor loop
+
+%         mb(:,1,w)  =nanmean(Mflat      (Mflatbp_distance==0,:),1);
+%         mARb(:,1,w)=nanmean(Mrefaveflat(Mflatbp_distance==0,:),1);
 
 
-% Notes:
+% NOTES:
 % mb is frequency X binned distance X windows, and you can average across windows
 % binindex_min_ltmax tells you for each column of mb what was the 
 %         1] minimum (>0) distance, and
@@ -177,18 +180,18 @@ end; disp('Done')
 
 
 %% zscore the log transformed power according to frequency
-mbm=squeeze(mean(log(mb),3)); 
-mARbm=squeeze(mean(log(mARb),3)); 
+mblogm=squeeze(mean(log(mb),3)); 
+mARblogm=squeeze(mean(log(mARb),3)); 
  nfrx=length(frx);
- mbm_z=mbm; mARbm_z=mARbm;
- for i=1:nfrx; nns=~isnan(mbm(i,:)); 
-     mbm_z(i,nns)=zscore((mbm(i,nns))); 
-     mARbm_z(i,nns)=zscore((mARbm(i,nns))); 
+ mblogm_z=mblogm; mARblogm_z=mARblogm;
+ for i=1:nfrx; nns=~isnan(mblogm(i,:)); 
+     mblogm_z(i,nns)=zscore((mblogm(i,nns))); 
+     mARblogm_z(i,nns)=zscore((mARblogm(i,nns))); 
  end; 
 
- %%
+ %% plot log-transformed version
  figure('color','w','position',[[54 223 1907 1102]]); colormap(parula); 
- toplot=mean((mbm_z),3);  % mb or mb_z
+ toplot=mean((mblogm_z),3);  % mb or mb_z
  cm_distance=flipud(cmocean('deep',1+ceil(max(max(Mbp_distance)))));
 
 % Plot confusion matrix of bipolar distances between all pairs
@@ -203,22 +206,17 @@ mARbm=squeeze(mean(log(mARb),3));
  subplot(8,2,7); histogram(make1d(Mbp_distance),0:binsz:85,'facecolor',.5*[1 1 1]); set(gca,'fontsize',12); xlabel('Binned bipolar distance (mm)','fontsize',14); 
  ylabel('Counts/bin','fontweight','normal'); axis tight; grid on; cb=colorbar; set(cb,'visible','off'); xlim(xldist)
 
+
 % Histogram of angles
- subplot(8,6,22); angs=make1d(Mbp_angle); nns=~isnan(angs);
+if doanglerange
+    subplot(8,6,22); angs=make1d(Mbp_angle); nns=~isnan(angs);
  polarhistogram(angs(nns),-pi:2*pi*(5/360):pi,'facecolor',.5*[1 1 1]); title('Bipolar angle distribution (5^o steps)','fontsize',14,'fontweight','normal'); 
  maxrt=max(get(gca,'rtick')); 
  set(gca,'rtick',[min(get(gca,'rtick')) maxrt/2 maxrt],'ThetaTick',[0 90 180 270],'fontSize',9); 
- 
+end
 
-%  % line plot of same as below, zscored
-%  subplot(2,3,3); hold on; cmo=fliplr(cmocean('thermal',nfrx+round(nfrx)*.1)); colormap(gca,cmo); cb=colorbar; set(cb,'ticks',0:.25:1,'ticklabels',0:50:200,'fontsize',12)
-%  for i=nfrx:-1:1; nns=~isnan(toplot(i,:));
-%      plot(binz(2:size(toplot,2)+1),toplot(i,:),'-','color',cmo(i,:),'linewidth',1); 
-%  end; grid on; axis tight; xlim(xldist)
-%  set(gca,'fontsize',14); ylabel('ln(power)'); xlabel('Bipolar distance (mm)','fontsize',14); xlim(xldist)
-%  text(max(xlim)+diff(xlim)/4,mean(ylim),'Frequency (Hz)','fontsize',12,'rotation',90,'horizontalalignment','center')
-
- % plot illustration of location of bipolar pairs, colored by same distance scale
+if doanglerange;  
+% plot illustration of location of bipolar pairs, colored by same distance scale
  subplot(2,3,3); hold on; 
  elecsbrain(pt,0,[1:nchtocheck],[0 0 0],'l',0,5,2); alpha 0.05; litebrain('r',0); zoom(1.5)
  for c1=1:size(Mbp_angle,1)
@@ -228,56 +226,42 @@ mARbm=squeeze(mean(log(mARb),3));
        end
    end
  end
+end
 
  subplot(2,2,3); 
- pcolorjk(binz(2:size(toplot,2)+1),frx,toplot); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
- %text(max(xlim)+diff(xlim)/4,mean(ylim),'ln(power)','fontsize',12,'rotation',90,'horizontalalignment','center')
+ pcolorjk(binz(1:size(toplot,2)),frx,toplot); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
  title({'ln(power), z-scored by frequency',''},'fontweight','normal')
  set(gca,'yscale','log','ytick',ft,'yticklabel',ftl); xlim(xldist); caxis([-1 1]*(max(abs(caxis)))); colormap(gca,cmocean('balance')); %cm=cmocean('balance',100); colormap(gca,cm(:,[2 1 3]))
  caxis([-4.5 4.5]);
-%  subplot(2,2,3); 
-%  pcolorjk(frx,binz(2:size(toplot,2)+1),toplot'); shading flat; set(gca,'xdir','normal'); xlabel('Frequency (Hz)'); ylabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
-%  text(max(ylim)+diff(ylim)/4,mean(xlim),'ln(power)','fontsize',12,'rotation',90,'horizontalalignment','center')
-%  title('(z-scored by frequency)','fontweight','normal')
-%  set(gca,'xscale','log','xtick',ft,'xticklabel',ftl); ylim(xldist)
+
 
  subplot(2,2,4)
- [mx,my]=meshgrid(binz(2:size(toplot,2)+1)+binsz/2,frx);
+ [mx,my]=meshgrid(binz(1:size(toplot,2))+binsz/2,frx);
  surf(mx,my,(toplot)); xlabel('Bipolar distance (mm)','fontsize',14); ylabel('Frequency (Hz)','fontsize',14); zlabel({'ln(power),','z-scored by frequency'},'fontsize',14)
  view(140,25); set(gca,'xdir','reverse','ydir','reverse','ytick',ft,'yticklabel',ftl,'fontsize',14); 
  colormap(gca,cmocean('balance')); caxis([-1 1]*(max(abs(caxis)))); 
  xlim([binsz/2 85]);  axis tight; 
  set(gca,'yscale','log'); 
  xlim(xldist)
- %set(gca,'yscale','linear'); set(gca,'zscale','log'); set(gca,'zscale','linear')
- %ylim([0 30]); %zlim([.035 3]); caxis([.035 3]); %low freqs only
- %ylim([30 200]); %zlim([0 0.035]); caxis([0 0.035]); %high freqs only
  ylim([0 200]); 
  zlim([-4.5 4.5]);
-%  if doanglerange; 
-%      title([num2str(anglemin) ' to ' num2str(anglemax)]); 
-%  end
+ if doanglerange; 
+     title([num2str(anglemin) ' to ' num2str(anglemax)]); 
+ end
 
-%  subplot(2,2,4)
-%  [mx,my]=meshgrid(binz(2:size(toplot,2)+1)+binsz/2,frx);
-%  surf(mx,my,(toplot)); xlabel('Bipolar distance (mm)','fontsize',14); ylabel('Frequency (Hz)','fontsize',14); zlabel('ln (Power)','fontsize',14)
-%  view(45+0,25); % view(140,25); 
-%  set(gca,'xdir','reverse','ydir','reverse','ytick',ft,'yticklabel',ftl,'fontsize',14); xlim([binsz/2 85]);  axis tight; 
-%  set(gca,'yscale','log'); xlim(xldist)
-%   title('(z-scored by frequency)','fontweight','normal')%set(gca,'yscale','linear'); set(gca,'zscale','log'); set(gca,'zscale','linear')
-%  %ylim([0 30]); %zlim([.035 3]); caxis([.035 3]); %low freqs only
-%  %ylim([30 200]); %zlim([0 0.035]); caxis([0 0.035]); %high freqs only
-%  ylim([0 200]); 
 
+if doanglerange %loop through consecutive angle ranges of bipolar pair orientations to see effects
  loopangles
- 
  return
+end
 
 %% bipolar power minus mean referential power for all pairs
 
 % transform power
-mb_=mb;      mb_(~isnan(mb_))=sqrt(mb_(~isnan(mb_))); 
-mARb_=mARb;  mARb_(~isnan(mARb_))=sqrt(mARb_(~isnan(mARb_)));
+mlogb_=mb;      mlogb_(~isnan(mlogb_))=log(mlogb_(~isnan(mlogb_))); %log transform
+mARlogb_=mARb;  mARlogb_(~isnan(mARlogb_))=log(mARlogb_(~isnan(mARlogb_))); %log transform
+% mb_=mb;      mb_(~isnan(mb_))=sqrt(mb_(~isnan(mb_))); 
+% mARb_=mARb;  mARb_(~isnan(mARb_))=sqrt(mARb_(~isnan(mARb_)));
 % mb_=mb;      mb_(~isnan(mb_))=sqrt(mb_(~isnan(mb_))); 
 % mARb_=mARb;  mARb_(~isnan(mARb_))=sqrt(mARb_(~isnan(mARb_)));
 
@@ -286,8 +270,8 @@ mARb_=mARb;  mARb_(~isnan(mARb_))=sqrt(mARb_(~isnan(mARb_)));
 %     for i=1:nbinz; I=mARb_(:,i,:); I(~isnan(I))=zscore(I(~isnan(I))); mARb_(:,i,:)=I; end
     
 % mean across windows
-mb_m=squeeze(mean(mb_,3)); 
-mARb_m=squeeze(mean(mARb_,3)); 
+mlogb_m=squeeze(mean(mlogb_,3)); 
+mARlogb_m=squeeze(mean(mARlogb_,3)); 
 
 psig=0.001;
 
@@ -295,49 +279,42 @@ xl=[binsz*2 binz(end)]; yl=frx([1 end]);
 
 figure('color','w','position',[721 402 1486 936]); colormap(jet); clear cax; %
  subplot(2,2,1)
- pcolorjk(binz(2:size(mb_m,2)+1),frx,mARb_m); shading flat; ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
+ pcolorjk(binz(1:size(mlogb_m,2))-binsz,frx,mARlogb_m); shading flat; ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
  text(max(xlim)+diff(xlim)/4,mean(ylim),'(power)','fontsize',12,'rotation',90,'horizontalalignment','center')
  title({'Referential','(average of pair)'},'fontweight','normal')
  set(gca,'ydir','normal','yscale','log','ytick',ft,'yticklabel',ftl,'xlim',xl,'ylim',yl);
     cax(1,:)=caxis;
+
  subplot(2,2,2)
- pcolorjk(binz(2:size(mb_m,2)+1),frx,mb_m); shading flat; ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
+ pcolorjk(binz(1:size(mlogb_m,2))-binsz,frx,mlogb_m); shading flat; ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
  text(max(xlim)+diff(xlim)/4,mean(ylim),'(power)','fontsize',12,'rotation',90,'horizontalalignment','center')
  title('Bipolar','fontweight','normal')
  set(gca,'ydir','normal','yscale','log','ytick',ft,'yticklabel',ftl,'xlim',xl,'ylim',yl);
     cax(2,:)=caxis;
   cax=(([min(cax(:,1),[],1) max(cax(:,2),[],1)])); % get extreme min and max of the two conditions
-%     cax=max(abs([min(cax(:,1),[],1) max(cax(:,2),[],1)])); cax=[-cax cax];% get extreme and center at zero
-%     cax=[-cax cax]*.5;
 %  caxis(cax);
  subplot(2,2,1);   caxis(cax); xlim(xldist)
  subplot(2,2,2);   caxis(cax); xlim(xldist)
  
  subplot(2,2,3)
-%  miff=(mb_m./mARb_m)*100-100; difftitle='Bipolar/Referential (%)';
- mDiff=(mb_m-mARb_m)./mARb_m*100; difftitle='Bipolar-Referential (%)';
- pcolorjk(binz(2:size(mb_m,2)+1),frxOK,mDiff); shading flat; ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
+ mDiff=((mARlogb_m-mlogb_m)./mARlogb_m)*100; difftitle='% Change (Referential minus Bipolar)';
+ pcolorjk(binz(1:size(mlogb_m,2))-binsz,frx,mDiff); shading flat; ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
  text(max(xlim)+diff(xlim)/4,mean(ylim),'% diff','fontsize',12,'rotation',90,'horizontalalignment','center')
  title(difftitle,'fontweight','normal')
  set(gca,'ydir','normal','yscale','log','ytick',ft,'yticklabel',ftl,'xlim',xl,'ylim',yl); xlim(xldist); caxdiff=caxis; 
-    caxdiff=max([ abs(caxis)])*[-1 1]; caxis(caxdiff); %colormap(gca,cmocean('balance')) 
-    colormap(gca,makecm([0 0 1;1 1 1;1 0 0],100))
-    %colormap(gca,viking(1)); 
-%     colormap(gca,cm_plasma)
-%     caxis([-5 5])
+    caxdiff=max([ abs(caxis)])*[-1 1]*.25; caxis(caxdiff); 
+    colormap(gca,cmocean('balance',100))
     
 subplot(2,2,4)
-[clusters, p_values, t_sums, permutation_distribution ] = permutest(mb_(:,:,:),mARb_(:,:,:),0); 
+[clusters, p_values, t_sums, permutation_distribution ] = permutest(mlogb_(:,:,:),mARlogb_(:,:,:),0); 
 msig=false(nfrx,length(binz)-1); for i=1:length(clusters); if p_values(i)<psig; msig(clusters{i})=true; end; end; 
 mDiff(~msig)=nan;
-pcolorjk(binz(2:size(mb_m,2)+1),frx,mDiff); shading flat; ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
+pcolorjk(binz(1:size(mlogb_m,2))-binsz,frx,mDiff); shading flat; ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
  text(max(xlim)+diff(xlim)/4,mean(ylim),'% diff','fontsize',12,'rotation',90,'horizontalalignment','center')
  title([difftitle ', p<' num2str(psig)],'fontweight','normal')
  set(gca,'ydir','normal','yscale','log','ytick',ft,'yticklabel',ftl,'xlim',xl,'ylim',yl); xlim(xldist)
-    caxis(caxdiff); %caxis(caxdiff*[-1 1]); %colormap(gca,cmocean('balance')) 
-    colormap(gca,makecm([0 0 1;1 1 1;1 0 0],100))
-    %colormap(gca,viking(1)); 
-%     colormap(gca,cm_plasma)
+    caxis(caxdiff); 
+    colormap(gca,cmocean('balance',100))
 
 %Add a line at 10mm for visualization of this common inter-electrode distance
 for i=1:4; subplot(2,2,i); yline(10,'k--',.75); end 
