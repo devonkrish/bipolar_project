@@ -1,4 +1,4 @@
-function [trm,frx,s]=bpspectra_Linear(d,sfx,frxrange,okc)
+function [trm,frx,s]=bpspectra_Linear_2023(d,sfx,frxrange,okc)
 % trm is mean of natural log transform of power across windows/trials
 % frx is index of frequencies
 % is all spectra data (frx X channel X window) that was used to log-transform then mean to create trm

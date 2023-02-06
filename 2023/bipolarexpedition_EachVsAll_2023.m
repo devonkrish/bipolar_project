@@ -1,16 +1,25 @@
-% function bipolarexpedition_EachVsAll_Jan2023(pt,nchtocheck)
-
+function [mDiff,mb_m,mARb_m,binz,frx]=bipolarexpedition_EachVsAll_2023(pt,nchtocheck,windowstocheck)
 % BIPOLAR PAIR ANALYSIS: EACH VS. ALL
 
-pt='EC183'; % EC175 and EC183 both have intact 16x16 square grids (channel #s 1:256)
-nchtocheck=128*2; 
-windowstocheck=1:100; %each window is 1 second of data
-binsz=1; % bin size in mm
+% % Code for a loop to run all patients and save display outputs
+% pts={'EC133','EC175','EC181','EC183','EC186','EC187','EC196','EC219','220','EC221','EC222'};
+% mDiff=[];  mb_m=[];  mARb_m=[];
+% for p=[1 2     4 5 6 7 8     10 11]; 
+%     [mDiff(p,:,:),mb_m(p,:,:),mARb_m(p,:,:)]=bipolarexpedition_EachVsAll_2023(pts{p},256);
+% end
+
+
+if ~exist('pt','var')||isempty(pt); pt='EC175'; end %pt='EC175'; % EC175 and EC183 both have intact 16x16 square grids (channel #s 1:256)
+if ~exist('nchtocheck','var')||isempty(nchtocheck); nchtocheck=128*2; end
+if ~exist('windowstocheck','var')||isempty(windowstocheck); windowstocheck=250; end %each window is 1 second of data (non-overlapping)
+
+binsz=2; % bin size in mm
 xldist=[0 70];
 doanglerange=0;
 onlygrids=true;
 onlydepths=false;
 onlystrips=false;
+g1s2d3=1; % use either grids (1) or strips (2) or depths (3) but not the others
 
 
 cm=cool(6); cm(1,:)=[0 0 0]; 
@@ -70,16 +79,27 @@ frxrange=[2 200]; %frequency range to examine
   ft=[2 5 10 20 50 100 200]; ftl=cellstr(num2str(ft')); %frequency labels for plots
   
 
-%% if wanting to only look at grids, strips, or depths, then nan the others
-if onlygrids||onlystrips||onlydepths;
-  for r=1:size(bpT,1)
-    if any(strcmpi(bpT(r,2),{'grid','minigrid'})) && ~onlygrids  || ...
-       strcmpi(bpT(r,2),'strip')              && ~onlystrips || ...
-       strcmpi(bpT(r,2),'depth')              && ~onlydepths;
-     d(:,bpN(r,1):bpN(r,2),:)=nan;
-    end
-  end; clear r
-end
+% %% if wanting to only look at grids, strips, or depths, then nan the others
+% if onlygrids||onlystrips||onlydepths;
+%   for r=1:size(bpT,1)
+%     if any(strcmpi(bpT(r,2),{'grid','minigrid'})) && ~onlygrids  || ...
+%        strcmpi(bpT(r,2),'strip')              && ~onlystrips || ...
+%        strcmpi(bpT(r,2),'depth')              && ~onlydepths;
+%      d(:,bpN(r,1):bpN(r,2),:)=nan;
+%     end
+%   end; clear r
+% end
+
+%% look at either grids, strips, or depths, and nan the others
+          for r=1:size(bpT,1)
+            if [g1s2d3~=1 && any(strcmpi(bpT(r,2),{'grid','minigrid'}))]  || ...
+               [g1s2d3~=2 &&     strcmpi(bpT(r,2),'strip')]               || ...
+               [g1s2d3~=3 &&     strcmpi(bpT(r,2),'depth')];
+                       d(:,bpN(r,1):bpN(r,2),:)=nan; %nan out component that isn't relevant to this run (see g1s2d3 above)
+              bp_distance(bpN(r,1):bpN(r,2))  =nan; %nan out their corresponding distances (irrelevant for this run)
+              bp_angle   (bpN(r,1):bpN(r,2))  =nan; %and angles, similarly
+            end
+          end; clear r
 
 
 %% bad channels
@@ -93,10 +113,12 @@ okc=~badchI; clear x xbch
 
 %*at this point, isolate speech or stim or non-speech/stim
 
-%*at this point, isolate STG or IFG channels
-[STG]=getelecs_region(pt,'stg',2);
-[IFG]=getelecs_region(pt,{'po','pt'},2);
+% %*at this point, isolate STG or IFG channels
+% [STG]=getelecs_region(pt,'stg',2);
+% [IFG]=getelecs_region(pt,{'po','pt'},2);
 
+windowstocheck=min([windowstocheck size(d,3)]);
+windowstocheck=1:windowstocheck; %convert to a vector of windows, 1:X
 
 %% ALL PAIRS (each vs. all others) analysis and example plot
  d=d(:,:,windowstocheck); clear Straces_allch; %free up RAM by getting rid of whatever won't be used (only using first ___ number of windows)
@@ -139,7 +161,7 @@ mARb=[];
 binz=[-1 0:binsz:85]; % can change binsz PRN at this point to test different bin resolutions on the plots below
 clear mx my mz  
 nbinz=length(binz)-1;
-parfor w=windowstocheck; disp(num2str(w)); % parfor here to run the windows
+ parfor w=windowstocheck; disp(num2str(w)); % parfor here to run the windows
     Mflat=[];
       Mflatbp_distance=[];
       Mflatbp_angle=[];
@@ -180,27 +202,36 @@ binz(1)=[]; %remove negative 1, only there to get referential channels (distance
 
 
 %% zscore the log transformed power according to frequency
-mblogm=squeeze(mean(log(mb),3)); 
-mARblogm=squeeze(mean(log(mARb),3)); 
+% mblogm=squeeze(mean(log(mb),3)); 
+% mARblogm=squeeze(mean(log(mARb),3)); 
+%  nfrx=length(frx);
+%  mblogm_z=mblogm; mARblogm_z=mARblogm;
+%  for i=1:nfrx; nns=~isnan(mblogm(i,:)); 
+%      mblogm_z(i,nns)=zscore((mblogm(i,nns))); 
+%      mARblogm_z(i,nns)=zscore((mARblogm(i,nns))); 
+%  end; 
+mb__m=squeeze(mean(sqrt(mb),3)); 
+mARb__m=squeeze(mean(sqrt(mARb),3)); 
  nfrx=length(frx);
- mblogm_z=mblogm; mARblogm_z=mARblogm;
- for i=1:nfrx; nns=~isnan(mblogm(i,:)); 
-     mblogm_z(i,nns)=zscore((mblogm(i,nns))); 
-     mARblogm_z(i,nns)=zscore((mARblogm(i,nns))); 
+ mb__m_z=mb__m; mARb__m_z=mARb__m;
+ for i=1:nfrx; nns=~isnan(mb__m(i,:)); 
+     mb__m_z(i,nns)=zscore((mb__m(i,nns))); 
+     mARb__m_z(i,nns)=zscore((mARb__m(i,nns))); 
  end; 
+
 
  %% plot log-transformed version
  figure('color','w','position',[[54 223 1907 1102]]); colormap(parula); 
- toplot=mean((mblogm_z),3);  % mb or mb_z
+ toplot=mean((mb__m_z),3);  % mb or mb_z
  cm_distance=flipud(cmocean('deep',1+ceil(max(max(Mbp_distance)))));
 
 % Plot confusion matrix of bipolar distances between all pairs
  subplot(8,3,1:3:7); pcolorjk(Mbp_distance); shf; hold on; %plot([1 1; 1 256]',[1 256;256 256]','k-','linewidth',1); plot([1 1 1 128 256],[1 128 256 256 256],'k.'); %plot([1 128 256 256 256]/2,[1 1 1 128 256]/2,'k.'); 
     axis equal off; set(gca,'ydir','normal','xdir','reverse'); colormap(gca,cm_distance); colorbar('fontsize',12); title('Bipolar pair distance (mm)','fontsize',14,'fontweight','normal')
-    caxis([0 80]); 
+    clim([0 80]); 
 % Plot confusion matrix of bipolar distances between all pairs
  subplot(8,3,2:3:8); pcolorjk(rad2deg(Mbp_angle)); shf; hold on; %plot([1 1; 1 256]',[1 256;256 256]','k-','linewidth',1); plot([1 1 1 128 256],[1 128 256 256 256],'k.'); %plot([1 128 256 256 256]/2,[1 1 1 128 256]/2,'k.'); 
-    axis equal off; set(gca,'ydir','normal','xdir','reverse'); colormap(gca,hsv(360)); caxis([-180 180]); colorbar('fontsize',12); title('Bipolar pair angle (deg)','fontsize',14,'fontweight','normal')
+    axis equal off; set(gca,'ydir','normal','xdir','reverse'); colormap(gca,hsv(360)); clim([-180 180]); colorbar('fontsize',12); title('Bipolar pair angle (deg)','fontsize',14,'fontweight','normal')
 
 % Histogram of number of pairs per bin
  subplot(8,2,7); histogram(make1d(Mbp_distance),0:binsz:85,'facecolor',.5*[1 1 1]); set(gca,'fontsize',12); xlabel('Binned bipolar distance (mm)','fontsize',14); 
@@ -231,15 +262,15 @@ end
  subplot(2,2,3); 
  pcolorjk(binz(1:size(toplot,2)),frx,toplot); shading flat; set(gca,'ydir','normal'); ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
  title({'ln(power), z-scored by frequency',''},'fontweight','normal')
- set(gca,'yscale','log','ytick',ft,'yticklabel',ftl); xlim(xldist); caxis([-1 1]*(max(abs(caxis)))); colormap(gca,cmocean('balance')); %cm=cmocean('balance',100); colormap(gca,cm(:,[2 1 3]))
- caxis([-4.5 4.5]);
+ set(gca,'yscale','log','ytick',ft,'yticklabel',ftl); xlim(xldist); clim([-1 1]*(max(abs(clim)))); colormap(gca,cmocean('balance')); %cm=cmocean('balance',100); colormap(gca,cm(:,[2 1 3]))
+ clim([-4.5 4.5]);
 
 
  subplot(2,2,4)
  [mx,my]=meshgrid(binz(1:size(toplot,2))+binsz/2,frx);
  surf(mx,my,(toplot)); xlabel('Bipolar distance (mm)','fontsize',14); ylabel('Frequency (Hz)','fontsize',14); zlabel({'ln(power),','z-scored by frequency'},'fontsize',14)
  view(140,25); set(gca,'xdir','reverse','ydir','reverse','ytick',ft,'yticklabel',ftl,'fontsize',14); 
- colormap(gca,cmocean('balance')); caxis([-1 1]*(max(abs(caxis)))); 
+ colormap(gca,cmocean('balance')); clim([-1 1]*(max(abs(clim)))); 
  xlim([binsz/2 85]);  axis tight; 
  set(gca,'yscale','log'); 
  xlim(xldist)
@@ -256,66 +287,112 @@ if doanglerange %loop through consecutive angle ranges of bipolar pair orientati
 end
 
 %% bipolar power minus mean referential power for all pairs
+% will also add a line at 10mm for visualization of this common clinical inter-electrode distance
 
-% transform power
-mlogb_=mb;      mlogb_(~isnan(mlogb_))=log(mlogb_(~isnan(mlogb_))); %log transform
-mARlogb_=mARb;  mARlogb_(~isnan(mARlogb_))=log(mARlogb_(~isnan(mARlogb_))); %log transform
-% mb_=mb;      mb_(~isnan(mb_))=sqrt(mb_(~isnan(mb_))); 
-% mARb_=mARb;  mARb_(~isnan(mARb_))=sqrt(mARb_(~isnan(mARb_)));
-% mb_=mb;      mb_(~isnan(mb_))=sqrt(mb_(~isnan(mb_))); 
-% mARb_=mARb;  mARb_(~isnan(mARb_))=sqrt(mARb_(~isnan(mARb_)));
+% transform power before calculating perecent change
+none1sqrt2log3=2; % 1: no transform, 2: square root, 3: log
+mb_=mb; mARb_=mARb; % make a copy... then transform the copy
+if none1sqrt2log3==1;     txtyp='raw'; % no transform, power in raw form
+    mb_(~isnan(mb_))      =    (mb_(~isnan(mb_)));
+    mARb_(~isnan(mARb_))  =    (mARb_(~isnan(mARb_)));
+elseif none1sqrt2log3==2; txtyp='square root'; % square root transform
+    mb_(~isnan(mb_))      =sqrt(mb_(~isnan(mb_)));
+    mARb_(~isnan(mARb_))  =sqrt(mARb_(~isnan(mARb_)));
+elseif none1sqrt2log3==3; txtyp='natural log'; % log transform --> problematic because taking % change of certain small negative values creates extreme values
+    mb_(~isnan(mb_))      =log (mb_(~isnan(mb_)));
+    mARb_(~isnan(mARb_))  =log (mARb_(~isnan(mARb_)));
+end
 
 %     % zscore acrosss freqs and windows for each distance bin
 %     for i=1:nbinz; I=mb_  (:,i,:); I(~isnan(I))=zscore(I(~isnan(I))); mb_  (:,i,:)=I; end
 %     for i=1:nbinz; I=mARb_(:,i,:); I(~isnan(I))=zscore(I(~isnan(I))); mARb_(:,i,:)=I; end
     
 % mean across windows
-mlogb_m=squeeze(mean(mlogb_,3)); 
-mARlogb_m=squeeze(mean(mARlogb_,3)); 
+mb_m=squeeze(mean(mb_,3)); 
+mARb_m=squeeze(mean(mARb_,3)); 
 
-psig=0.001;
+psig=0.05;
 
-xl=[binsz*2 binz(end)]; yl=frx([1 end]);
+xl=[binsz*2 binz(end)]; fl=frx([1 end]);
 
-figure('color','w','position',[721 402 1486 936]); colormap(jet); clear cax; %
- subplot(2,2,1)
- pcolorjk(binz(1:size(mlogb_m,2))-binsz,frx,mARlogb_m); shading flat; ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
+figure('color','w','position',[315 1 1486 1046]); colormap(jet); clear cax; %
+ subplot(3,2,1)
+ pcolorjk(binz(1:size(mb_m,2))-binsz,frx,mARb_m); shading flat; ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
  text(max(xlim)+diff(xlim)/4,mean(ylim),'(power)','fontsize',12,'rotation',90,'horizontalalignment','center')
- title({'Referential','(average of pair)'},'fontweight','normal')
- set(gca,'ydir','normal','yscale','log','ytick',ft,'yticklabel',ftl,'xlim',xl,'ylim',yl);
-    cax(1,:)=caxis;
+ title({'Referential',['(average of pair)' ', ' txtyp]},'fontweight','normal')
+ set(gca,'ydir','normal','yscale','log','ytick',ft,'yticklabel',ftl,'xlim',xl,'ylim',fl);
+ cax(1,:)=clim;
 
- subplot(2,2,2)
- pcolorjk(binz(1:size(mlogb_m,2))-binsz,frx,mlogb_m); shading flat; ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
+ subplot(3,2,2)
+ pcolorjk(binz(1:size(mb_m,2))-binsz,frx,mb_m); shading flat; ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
  text(max(xlim)+diff(xlim)/4,mean(ylim),'(power)','fontsize',12,'rotation',90,'horizontalalignment','center')
- title('Bipolar','fontweight','normal')
- set(gca,'ydir','normal','yscale','log','ytick',ft,'yticklabel',ftl,'xlim',xl,'ylim',yl);
-    cax(2,:)=caxis;
-  cax=(([min(cax(:,1),[],1) max(cax(:,2),[],1)])); % get extreme min and max of the two conditions
-%  caxis(cax);
- subplot(2,2,1);   caxis(cax); xlim(xldist)
- subplot(2,2,2);   caxis(cax); xlim(xldist)
+ title(['Bipolar' ', ' txtyp],'fontweight','normal')
+ set(gca,'ydir','normal','yscale','log','ytick',ft,'yticklabel',ftl,'xlim',xl,'ylim',fl);
+ cax(2,:)=clim;
+ cax=(([min(cax(:,1),[],1) max(cax(:,2),[],1)])); % get extreme min and max of the two conditions
+ subplot(3,2,1);   clim(cax); xlim(xldist); yline(10,'k-',.75); 
+ subplot(3,2,2);   clim(cax); xlim(xldist); yline(10,'k-',.75); 
  
- subplot(2,2,3)
- mDiff=((mARlogb_m-mlogb_m)./mARlogb_m)*100; difftitle='% Change (Referential minus Bipolar)';
- pcolorjk(binz(1:size(mlogb_m,2))-binsz,frx,mDiff); shading flat; ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
- text(max(xlim)+diff(xlim)/4,mean(ylim),'% diff','fontsize',12,'rotation',90,'horizontalalignment','center')
- title(difftitle,'fontweight','normal')
- set(gca,'ydir','normal','yscale','log','ytick',ft,'yticklabel',ftl,'xlim',xl,'ylim',yl); xlim(xldist); caxdiff=caxis; 
-    caxdiff=max([ abs(caxis)])*[-1 1]*.25; caxis(caxdiff); 
-    colormap(gca,cmocean('balance',100))
+ subplot(3,2,3)
+ mDiff=((mb_m-mARb_m)./mARb_m)*100; difftitle='% Change (Referential minus Bipolar)';
+ pcolorjk(binz(1:size(mb_m,2))-binsz,frx,mDiff); shading flat; ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
+ title([difftitle ', ' txtyp],'fontweight','normal')
+ set(gca,'ydir','normal','yscale','log','ytick',ft,'yticklabel',ftl,'xlim',xl,'ylim',fl); xlim(xldist); yline(10,'k-',.75); 
+    caxdiff=clim; caxdiff=max([ abs(clim)])*[-1 1]; 
+    if caxdiff(2)<100; caxdiff=[-1 1]*100; end
+    clim(caxdiff); colormap(gca,cmocean('balance',40))
+    %hold on; contour(binz(1:size(mb_m,2))-binsz,frx,mDiff,'k','LineWidth',0.5);
     
-subplot(2,2,4)
-[clusters, p_values, t_sums, permutation_distribution ] = permutest(mlogb_(:,:,:),mARlogb_(:,:,:),0); 
-msig=false(nfrx,length(binz)-1); for i=1:length(clusters); if p_values(i)<psig; msig(clusters{i})=true; end; end; 
-mDiff(~msig)=nan;
-pcolorjk(binz(1:size(mlogb_m,2))-binsz,frx,mDiff); shading flat; ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
+subplot(3,2,4)
+[clusters, p_values, t_sums, permutation_distribution ] = permutest(mb_(:,:,:),mARb_(:,:,:),0); 
+msig=false(nfrx,length(binz)); 
+for i=1:length(clusters); 
+    if p_values(i)<psig; 
+        msig(clusters{i})=true; 
+    end; 
+end; 
+mDiffcopy= mDiff;
+mDiffcopy(~msig)=nan;
+pcolorjk(binz(1:size(mb_m,2))-binsz,frx,mDiffcopy); shading flat; ylabel('Frequency (Hz)'); xlabel('Distance (mm)'); set(gca,'fontsize',14); colorbar; 
  text(max(xlim)+diff(xlim)/4,mean(ylim),'% diff','fontsize',12,'rotation',90,'horizontalalignment','center')
- title([difftitle ', p<' num2str(psig)],'fontweight','normal')
- set(gca,'ydir','normal','yscale','log','ytick',ft,'yticklabel',ftl,'xlim',xl,'ylim',yl); xlim(xldist)
-    caxis(caxdiff); 
-    colormap(gca,cmocean('balance',100))
+ title([difftitle ', ' txtyp ', p<' num2str(psig)],'fontweight','normal')
+ set(gca,'ydir','normal','yscale','log','ytick',ft,'yticklabel',ftl,'xlim',xl,'ylim',fl); xlim(xldist); yline(10,'k-',.75); 
+    clim(caxdiff); colormap(gca,cmocean('balance',40))
+    %hold on; contour(binz(1:size(mb_m,2))-binsz,frx,mDiff,'k','LineWidth',0.5);
 
-%Add a line at 10mm for visualization of this common inter-electrode distance
-for i=1:4; subplot(2,2,i); yline(10,'k--',.75); end 
+% Histogram of number of pairs per bin
+ subplot(11,2,21); histogram(make1d(Mbp_distance),[0.001 binsz:binsz:85],'facecolor',.5*[1 1 1]); set(gca,'fontsize',12); xlabel('Binned bipolar distance (mm)','fontsize',14); 
+ ylabel('Counts/bin','fontweight','normal'); axis tight; grid on; cb=colorbar; set(cb,'visible','off'); xlim(xldist); yline(10,'k-',.75); set(gca,'fontsize',14); 
+ title(pt)
+ cd('~/Desktop/')
+ saveas(gcf,[pt '.png'])
 
+%%
+figure('color','w','position',[104 374 381 431]); hold on
+c1=101;
+c2=102;
+RA =squeeze(M      (c1,c1,:,:)); %channel A in referential
+RB =squeeze(M      (c2,c2,:,:)); %channel B in referential
+RAB=squeeze(Mrefave(c1,c2,:,:)); %channe`ls A and B in referential averaged together
+Rbp=squeeze(M      (c1,c2,:,:)); %channels A and B in bipolar
+% transform step
+RA =sqrt(RA); 
+RB =sqrt(RB); 
+RAB=sqrt(RAB);
+Rbp=sqrt(Rbp); 
+% mean step
+RAm =mean(RA,2); 
+RBm =mean(RB,2); 
+RABm=mean(RAB,2);
+Rbpm =mean(Rbp,2); 
+
+plot(frx,(RAm)  ,'--','linewidth',1,'color',[0 0 1]    ); 
+plot(frx,(RBm)  ,'--','linewidth',1,'color',[0 1 0]*.75)
+  %ribbons(frx,(RAB)',[0 1 1]*.75); hold on
+plot(frx,(RABm),'-' ,'linewidth',2,'color',[0 1 1]*.75)
+  %ribbons(frx,(Rbp)',[0 0 0]*.75); hold on
+plot(frx,(Rbpm) ,'-' ,'linewidth',2,'color',[0 0 0]    )
+set(gca,'xscale','log','xtick',ft,'xticklabel',ftl,'xlim',fl); grid on
+title([num2str(c1) ' to ' num2str(c2) ' -- ' num2str(Mbp_distance(c1,c2)) 'mm'])
+ cd('~/Desktop/')
+ saveas(gcf,[pt '__ex.png'])
