@@ -7,8 +7,9 @@ for p=[1 2     4 5 6 7 8     10 11];
     [mDiff(p,:,:),mb_m(p,:,:),mARb_m(p,:,:)]=bipolarexpedition_EachVsAll_2023(pts{p},256);
 end
 
-
+%%
 cm=cmocean('balance',24*2);
+ft=[2 5 10 20 50 100 200]; ftl=cellstr(num2str(ft'));
 
 figure('color','w','position',[45 249 1728 798]); 
 for i=1:size(mDiff,1); subplot(3,4,i); pcolorjk(binz,frx,squeeze(mDiff(i,:,:))); cax(i,:)=clim; title(pts{i}); 
