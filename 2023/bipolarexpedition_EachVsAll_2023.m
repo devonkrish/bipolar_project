@@ -1,14 +1,6 @@
 function [mDiff,mb_m,mARb_m,binz,frx]=bipolarexpedition_EachVsAll_2023(pt,nchtocheck,windowstocheck)
 % BIPOLAR PAIR ANALYSIS: EACH VS. ALL
-
-% % Code for a loop to run all patients and save display outputs
-% pts={'EC133','EC175','EC181','EC183','EC186','EC187','EC196','EC219','EC220','EC221','EC222'};
-% mDiff=[];  mb_m=[];  mARb_m=[];
-% for p=[1 2     4 5 6 7 8     10 11]; 
-%     [mDiff(p,:,:),mb_m(p,:,:),mARb_m(p,:,:),binz,frx]=bipolarexpedition_EachVsAll_2023(pts{p},256,250);
-%     close all
-% end
-
+% see loopbipolarexpedition.m to loop across patients ana analyze
 
 if ~exist('pt','var')||isempty(pt); pt='EC175'; end %pt='EC175'; % EC175 and EC183 both have intact 16x16 square grids (channel #s 1:256)
 if ~exist('nchtocheck','var')||isempty(nchtocheck); nchtocheck=128*2; end
@@ -21,7 +13,6 @@ onlygrids=true;
 onlydepths=false;
 onlystrips=false;
 g1s2d3=1; % use either grids (1) or strips (2) or depths (3) but not the others
-
 
 cm=cool(6); cm(1,:)=[0 0 0]; 
 datadir='/Volumes/KLEEN_DRIVE/David/Bipolar project/baseline-high-density-data/'; %bandpassfiltered/';
@@ -397,3 +388,4 @@ set(gca,'xscale','log','xtick',ft,'xticklabel',ftl,'xlim',fl); grid on
 title([num2str(c1) ' to ' num2str(c2) ' -- ' num2str(Mbp_distance(c1,c2)) 'mm'])
  cd('~/Desktop/')
  saveas(gcf,[pt '__ex.png'])
+
