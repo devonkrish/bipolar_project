@@ -2,10 +2,11 @@ function [mDiff,mb_m,mARb_m,binz,frx]=bipolarexpedition_EachVsAll_2023(pt,nchtoc
 % BIPOLAR PAIR ANALYSIS: EACH VS. ALL
 
 % % Code for a loop to run all patients and save display outputs
-% pts={'EC133','EC175','EC181','EC183','EC186','EC187','EC196','EC219','220','EC221','EC222'};
+% pts={'EC133','EC175','EC181','EC183','EC186','EC187','EC196','EC219','EC220','EC221','EC222'};
 % mDiff=[];  mb_m=[];  mARb_m=[];
 % for p=[1 2     4 5 6 7 8     10 11]; 
-%     [mDiff(p,:,:),mb_m(p,:,:),mARb_m(p,:,:)]=bipolarexpedition_EachVsAll_2023(pts{p},256);
+%     [mDiff(p,:,:),mb_m(p,:,:),mARb_m(p,:,:),binz,frx]=bipolarexpedition_EachVsAll_2023(pts{p},256,250);
+%     close all
 % end
 
 
