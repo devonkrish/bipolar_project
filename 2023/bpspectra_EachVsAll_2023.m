@@ -1,11 +1,17 @@
 function [M,Mrefave,Mbp_distance,frx,Mc,Mbp_angle]=bpspectra_EachVsAll_2023(d,sfx,frxrange,em,nchtocheck)
-% for each window in d (samples x channels x windows), take channel c1
+% for each window in d (samples x electrodes x windows), take channel c1
 % minus channel c2 and computes spectrum on that bipolar signal, placing
 % into a confusion matrix. Also does referential spectra (on the diagonal).
+% INPUTS:
+%   d is a matrix of ICEEG voltage values as samples x electrodes x windows
+%   sfx is sampling frequency
+%   frxrange is the range of frequencies to look at [min max]
+%   em is the XYZ coordinates of the electrodes in d
+%   nchtocheck is the number of electrodes (channels) to check if not wanting to do all
 % OUTPUTS:
 %   M is bipolarchannel1 X bipolarchannel2 X frx X 1secwindow
 %   Mbpdist is a confusion matrix of the euclidean distances for every bipolar pair (channel x channel)
-%   frx is the frrequency index for maz
+%   frx is the frequency index for M (3rd dimension)
 
 sqrt2log3=2; %using square root as default since the negative values from log give issues
 

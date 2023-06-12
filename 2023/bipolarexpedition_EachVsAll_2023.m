@@ -1,6 +1,6 @@
 function [mDiff,mb_m,mARb_m,binz,frx]=bipolarexpedition_EachVsAll_2023(pt,nchtocheck,windowstocheck)
 % BIPOLAR PAIR ANALYSIS: EACH VS. ALL
-% see loopbipolarexpedition.m to loop across patients ana analyze
+% see loopbipolarexpedition.m to loop across patients and analyze
 
 if ~exist('pt','var')||isempty(pt); pt='EC175'; end %pt='EC175'; % EC175 and EC183 both have intact 16x16 square grids (channel #s 1:256)
 if ~exist('nchtocheck','var')||isempty(nchtocheck); nchtocheck=128*2; end
