@@ -1,22 +1,22 @@
 % BIPOLAR PAIR ANALYSIS: LINEAR
 
-onlygrids=true;
-onlydepths=false;
+onlygrids=true; %true
+onlydepths=false; %false
 onlystrips=false;
 savePlots = true;
 countNumWindows = false;
 % plotting for scatter + SEM across conditions
-percentPowPlot = false;
-zscorePlot = false;
+percentPowPlot = true;
+zscorePlot = true;
 averagePlot = true;
-saveData = false;
+saveData = true;
 
-folderFigures = '/Users/davidcaldwell/Box/Kleenlab/David/Results/June Results fewer subj/';
+folderFigures = '/Users/devonkrish/Desktop/IED/_BipolarReref/June Results fewer subj/';
 
 cm=cool(6); cm(1,:)=[0 0 0];
-datadir='/Volumes/KLEEN_DRIVE/David/Bipolar project/baseline-high-density-data/'; %bandpassfiltered/';
+datadir='/Users/devonkrish/Desktop/IED/_BipolarReref/baseline-high-density-data/'; %bandpassfiltered/';
 cd([datadir])
-load('/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedSpikes_April2022');
+load('/Users/devonkrish/Desktop/IED/_BipolarReref/taggedSpikes_April2022');
 sfx=512;
 frxrange=[2 200]; %frequency range to examine
 ft=[2 5 10 20 50 100 200]; ftl=cellstr(num2str(ft')); %frequency labels for plots
@@ -30,7 +30,8 @@ maxbpd=5;
 % for i=1:length(Spt); ptblall{i,1}=[Spt{i} '_' Sblock{i}]; end %seems like Devon forgot to include EC181_B7-9 so will use the below method instead
 % uptbl=unique(ptblall);
 
-%% LINEAR PAIRS analysis and plots
+%% LINEAR PAIRS analysis and plots 
+%(saved as linpairvar.mat and largelinpairvar.mat)
 figure(1); set(gcf,'color','w','position',[372 1 1297 1337]);
 u=dir; uptbl={}; for i=1:length(u); uname=u(i).name; uptbl{i,1}=uname(1:end-28); end; uptbl(1:2)=[]; clear i u uname
 hasmat=false(maxbpd+1,length(pts));
@@ -65,7 +66,7 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
         
         nch=size(d,2);
         
-        [bpN,bpT]=xlsread(['/Volumes/KLEEN_DRIVE/David/Bipolar project/AN_ElectrodeInfoTDT.xlsx'],pts{p});
+        [bpN,bpT]=xlsread(['/Users/devonkrish/Desktop/IED/_BipolarReref/AN_ElectrodeInfoTDT.xlsx'],pts{p});
         [em,eleclabels,anatomy]=getelecs(pts{p},2);
         
         % d is a matrix of samples by channels by trials consisting of referential intracranial EEG data
@@ -183,6 +184,8 @@ TRSE(:,~okpt,:)=nan;
 %% plots aggregated across patients
 
 % averages
+outputarr=[];
+addel=[];
 figure; set(gcf,'color','w'); %,'position',[1055 216 1217 826]
 hold on
 ps=nan(maxbpd,length(pts),length(frx));
@@ -199,6 +202,11 @@ for bpd=[1:maxbpd 0]
     
     
     %ribbons(frx,sq(ps(bpd+1,h,:)),cm(bpd+1,:),.3,'sem',0,0); grid on; set(gca,'xlim',frxrange)
+    
+    addel = [mean(sq(ps(bpd+1,h,:)))]; %addl
+    outputarr = horzcat(outputarr, addel); %addl
+    
+    
     plot(frx,mean(sq(ps(bpd+1,h,:)),1),'color',cm(bpd+1,:),'linewidth',2);
     hold on
 end; grid on; set(gca,'xlim',frxrange); ylabel('ln(power)'); xlabel('Frequency (Hz)'); set(gca,'xscale','linear')
@@ -224,7 +232,7 @@ for bpd=[1:maxbpd 0]
     % plot(frx,mean(sq(ps(bpd+1,h,:)),1),'color',cm(bpd+1,:),'linewidth',2);
     hold on
 end; grid on; set(gca,'xlim',frxrange); ylabel('ln(power)'); xlabel('Frequency (Hz)'); set(gca,'xscale','linear')
-title('Z-score log power across grid subjects')
+title('Z-score log power across grids subjects')
 set(gca,'fontsize',14);
 tempFig = gcf;
 tempFig.Position = [839 210 581 1128];
@@ -254,7 +262,7 @@ for bpd=[1:maxbpd 0]
     % plot(frx,mean(sq(ps(bpd+1,h,:)),1),'color',cm(bpd+1,:),'linewidth',2);
     hold on
 end; grid on; set(gca,'xlim',frxrange); ylabel('ln(power)'); xlabel('Frequency (Hz)'); set(gca,'xscale','linear')
-title('Log percent total power across grid subjects')
+title('Log percent total power across grids subjects')
 set(gca,'fontsize',14);
 tempFig = gcf;
 tempFig.Position = [839 210 581 1128];
@@ -415,7 +423,7 @@ if savePlots
     exportgraphics(tempFig,fullfile(folderFigures,['bipolar_linear_swarm_avg.eps']))
     
 end
-%%
+%% NEXT
 freqBandsFigLine = figure;
 tiledlayout(3,2,'TileSpacing','Compact','Padding','Compact');
 

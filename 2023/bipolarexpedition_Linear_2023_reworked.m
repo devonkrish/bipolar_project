@@ -24,7 +24,6 @@ frxrange=[2 200]; %frequency range to examine
 %which patients are ok to do
 okpt=false(1,length(pts)); 
     okpt([4 12:16 19:23])=1;
-
 % for i=1:length(Spt); ptblall{i,1}=[Spt{i} '_' Sblock{i}]; end %seems like Devon forgot to include EC181_B7-9 so will use the below method instead
 % uptbl=unique(ptblall); 
 
@@ -55,7 +54,7 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
     
             % convert to 3D matrix, combine all windows from consecutive blocks for each patient
             for i=1:size(nonspks_windows,2); 
-                d(:,:,i+nwind)=nonspks_windows{2,i}'; % d is a 3D matrix samples by samples X channels X windows
+                d(:,:,i+nwind)=nonspks_windows{2,i}'; % d is a 3D matrix samples by channels by trials
             end
             nwind=size(d,3);
     
@@ -161,7 +160,7 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
         figure(1); sp(5,5,p); hold on; %each patient in their own plot
          ribbons(frx,trm,cm(bpd_mm(bpd+1)+1,:),.5,'sem',0,0); 
          grid on; title(pts{p}); drawnow; 
-         if p==4; %changed from 4
+         if p==4; 
              xlabel('Frequency (Hz)'); 
              ylabel('ln(power)'); 
              legend({'referential','', [bpd_mm(2)],'', [bpd_mm(3)],'',[bpd_mm(4)],'',[bpd_mm(5)],'',[bpd_mm(6)]},'location','sw'); 
@@ -171,14 +170,14 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
       end
 
       %% ECoG trace plots for increasing bipolar spacing (example patient)
-      if p==4 %changed from 4
+      if p==4 
         figure(5); set(gcf,'color','w','position',[1638 1 668 1344])
         sp(6,2,(bpd+1)*2-1); hold on; 
         chtoplot=49:64; %example channels [EC143-49:64, EC175-]
         windowtoplot=12; %example window
         ts=1/sfx:1/sfx:1; %timestamps for 1-sec window
         eegplotbytime2021(d(:,chtoplot,windowtoplot),512,300,[],0,[.3 .3 .3],1);
-                 for c=1:length(chtoplot); plot(ts,-c*1000+d(:,chtoplot(c),windowtoplot),'color',[0 .6 .6],'linewidth',1); end
+    %             for c=1:length(chtoplot); plot(ts,-c*1000+d(:,chtoplot(c),windowtoplot),'color',[0 .6 .6],'linewidth',1); end
         if ~exist('yl','var'); yl=ylim; end; ylim(yl);
         axis off
         sp(2,2,2); hold on; 
@@ -210,7 +209,7 @@ TRSE(:,~okpt,:)=nan;
 figure; set(gcf,'color','w'); %,'position',[1055 216 1217 826]
 hold on
 ps=nan(maxbpd,length(pts),length(frx));
-for bpd=[1:maxbpd 0]
+for bpd=[1:maxbpd 0] %MAKE INTO bpd=[1:maxbpd 0]
     h=find(hasmat(bpd+1,:));
     for p=h
         ps_=SS{bpd+1,p};

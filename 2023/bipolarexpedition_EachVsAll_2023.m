@@ -15,9 +15,9 @@ onlystrips=false;
 g1s2d3=1; % use either grids (1) or strips (2) or depths (3) but not the others
 
 cm=cool(6); cm(1,:)=[0 0 0]; 
-datadir='/Volumes/KLEEN_DRIVE/David/Bipolar project/baseline-high-density-data/'; %bandpassfiltered/';
+datadir='/Users/devonkrish/Desktop/IED/_BipolarReref/baseline-high-density-data/'; %bandpassfiltered/';
 cd([datadir])
-load('/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedspikes_April2022.mat')
+load('/Users/devonkrish/Desktop/IED/_BipolarReref/taggedspikes_April2022.mat')
 % load('/Users/jonathankleen/Desktop/taggedspikes_April2022.mat')
 sfx=512;
 frxrange=[2 200]; %frequency range to examine
@@ -57,7 +57,7 @@ nch=size(d,2);
 
 % load electrode component infor (grid/strip/depth and how many linear contacts they have in a row
 % [bpN,bpT]=xlsread(['/Users/davidcaldwell/code/high_density_ecog/AN_ElectrodeInfoTDT.xlsx'],pts{p});
-[bpN,bpT]=xlsread(['/Volumes/KLEEN_DRIVE/David/Bipolar project/AN_ElectrodeInfoTDT.xlsx'],pts{p});
+[bpN,bpT]=xlsread(['/Users/devonkrish/Desktop/IED/_BipolarReref/AN_ElectrodeInfoTDT.xlsx'],pts{p});
 
 
 [em,eleclabels,anatomy]=getelecs(pts{p},2);
@@ -65,7 +65,7 @@ nch=size(d,2);
 cm=cool(6); cm(1,:)=[0 0 0]; 
 datadir='/Volumes/KLEEN_DRIVE/David/Bipolar project/baseline-high-density-data/bandpassfiltered/';
 cd([datadir])
-load('/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedspikes_April2022.mat')
+load('/Users/devonkrish/Desktop/IED/_BipolarReref/taggedspikes_April2022.mat')
 sfx=512;
 frxrange=[2 200]; %frequency range to examine
   ft=[2 5 10 20 50 100 200]; ftl=cellstr(num2str(ft')); %frequency labels for plots
