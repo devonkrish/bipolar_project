@@ -13,10 +13,13 @@ end
 bpd_mm=bpd_mm*(0:maxbpd); %bipolar distances to be evaluated, in mm
 
 cm=cool(50); cm=[0 0 0;cm]; %first entry black for referential, rest allows color-coding of physical distance
-datadir='/Volumes/KLEEN_DRIVE/David/Bipolar project/'; %bandpassfiltered/';
-cd([datadir 'baseline-high-density-data/'])
+% datadir='/Volumes/KLEEN_DRIVE/David/Bipolar project/'; %bandpassfiltered/';
+data_root = getenv("KLEEN_DATA");
+datadir = fullfile(data_root, 'bipolar_expedition');
+% cd([datadir 'baseline-high-density-data/'])
 % load('/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedspikes_April2022.mat')
-load([datadir 'taggedspikes_April2022.mat'])
+tag_spikes_path = fullfile(datadir, 'taggedspikes_April2022.mat');
+load(tag_spikes_path);
 sfx=512;
 frxrange=[2 200]; %frequency range to examine
   ft=[2 5 10 20 50 100 200]; ftl=cellstr(num2str(ft')); %frequency labels for plots
@@ -45,7 +48,8 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
         nwind=0;
         for b=1:length(ptbl); disp(uptbl{ptbl(b)})
             % load using using "_jk" versions of baseline windows, updated 2/2022
-            load([datadir 'baseline-high-density-data/' uptbl{ptbl(b)} '_baselineWindows_fromraw.mat'])
+            datapath = fullfile(datadir, 'baseline-high-density-data', [uptbl{ptbl(b)} '_baselineWindows_fromraw.mat']);
+            load(datapath);
             % get rid of baseline windows containing spikes or artifact
             spksarti=hasspk | hasarti;
             nonspks_windows(:,spksarti)=[];
@@ -70,7 +74,8 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
         %   gives the number of electrodes in each row.
         % bpT is the name of the component (column 1) and whether it is a grid strip or depth
         %[bpN,bpT]=xlsread(['/Users/davidcaldwell/code/high_density_ecog/AN_ElectrodeInfoTDT.xlsx'],pts{p});
-        [bpN,bpT]=xlsread([datadir '/AN_ElectrodeInfoTDT.xlsx'],pts{p});
+        an_electrode_info_path = fullfile(datadir, 'AN_ElectrodeInfoTDT.xlsx');
+        [bpN,bpT]=xlsread(an_electrode_info_path,pts{p});
 
         % pull electrode XYZ coordinates (em) from TDT_elecs_all.mat file
         [em,~,~]=getelecs(pts{p},2);
