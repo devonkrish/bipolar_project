@@ -16,7 +16,7 @@ cm=cool(50); cm=[0 0 0;cm]; %first entry black for referential, rest allows colo
 datadir='/Volumes/KLEEN_DRIVE/David/Bipolar project/'; %bandpassfiltered/';
 cd([datadir 'baseline-high-density-data/'])
 % load('/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedspikes_April2022.mat')
-load('/Users/jonathankleen/Desktop/taggedspikes_April2022.mat')
+load([datadir 'taggedspikes_April2022.mat'])
 sfx=512;
 frxrange=[2 200]; %frequency range to examine
   ft=[2 5 10 20 50 100 200]; ftl=cellstr(num2str(ft')); %frequency labels for plots
