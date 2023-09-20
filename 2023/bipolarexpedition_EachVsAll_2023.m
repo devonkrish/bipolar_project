@@ -26,7 +26,7 @@ sfx=512;
 frxrange=[2 200]; %frequency range to examine
   ft=[2 5 10 20 50 100 200]; ftl=cellstr(num2str(ft')); %frequency labels for plots
  
-u=dir; uptbl={}; for i=1:length(u); uname=u(i).name; uptbl{i,1}=uname(1:end-28); end; uptbl(1:2)=[]; clear i u uname
+u=dir(datadir); uptbl={}; for i=1:length(u); uname=u(i).name; uptbl{i,1}=uname(1:end-28); end; uptbl(1:2)=[]; clear i u uname
 
 p=find(strcmpi(pts,pt)); %patient number ID
 pblocks=strfind(uptbl,pts{p}); 
@@ -68,7 +68,7 @@ an_electrode_info_path = fullfile(data_root, 'bipolar_expedition', 'AN_Electrode
 [em,eleclabels,anatomy]=getelecs(pts{p},2);
 
 cm=cool(6); cm(1,:)=[0 0 0]; 
-datadir='/Volumes/KLEEN_DRIVE/David/Bipolar project/baseline-high-density-data/bandpassfiltered/';
+% datadir='/Volumes/KLEEN_DRIVE/David/Bipolar project/baseline-high-density-data/bandpassfiltered/';
 datadir = fullfile(datadir, 'bandpassfiltered');
 %cd([datadir])
 %load('/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedspikes_April2022.mat')

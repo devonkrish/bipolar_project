@@ -33,16 +33,23 @@ okpt=false(1,length(pts));
 
 %% LINEAR PAIRS analysis and plots
 figure(1); set(gcf,'color','w','position',[372 1 1297 1337]); 
-u=dir; uptbl={}; for i=1:length(u); uname=u(i).name; uptbl{i,1}=uname(1:end-28); end; uptbl(1:2)=[]; clear i u uname
+u=dir(fullfile(datadir, 'baseline-high-density-data')); uptbl={}; 
+for i=1:length(u)
+    uname=u(i).name; 
+    uptbl{i,1}=uname(1:end-28); 
+end
+uptbl(1:2)=[]; 
+clear i u uname
 hasmat=false(maxbpd+1,length(pts));
-for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
+for bpd=0:maxbpd %bipolar distance (# of electrodes to subsample)
     
     for p=find(okpt) %[4 12:23]
         pblocks=strfind(uptbl,pts{p}); 
-        for i=1:length(pblocks); 
+        for i=1:length(pblocks)
             isbl(i,1)=~isempty(pblocks{i}); 
         end
-        ptbl=find(isbl); if ~isempty(ptbl); disp(['Loading ' pts{p} ' blocks...']); end
+        ptbl=find(isbl); 
+        if ~isempty(ptbl); disp(['Loading ' pts{p} ' blocks...']); end
 
         d=[]; %d will become a matrix of samples by channels by trials consisting of referential intracranial EEG data
         nwind=0;
@@ -58,7 +65,7 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
             clear hasspkvec hasspk hasartivec hasarti spksarti % now clear spike- and artifact-related variables from workspace
     
             % convert to 3D matrix, combine all windows from consecutive blocks for each patient
-            for i=1:size(nonspks_windows,2); 
+            for i=1:size(nonspks_windows,2)
                 d(:,:,i+nwind)=nonspks_windows{2,i}'; % d is a 3D matrix samples by channels by trials
             end
             nwind=size(d,3);
@@ -132,9 +139,9 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
 
         %% look at either grids, strips, or depths, and nan the others
           for r=1:size(bpT,1)
-            if [g1s2d3==1 || any(strcmpi(bpT(r,2),{'grid','minigrid'}))]  || ...
-               [g1s2d3==2 ||     strcmpi(bpT(r,2),'strip')]               || ...
-               [g1s2d3==3 ||     strcmpi(bpT(r,2),'depth')];
+            if [g1s2d3~=1 && any(strcmpi(bpT(r,2),{'grid','minigrid'}))]  || ...
+               [g1s2d3~=2 &&     strcmpi(bpT(r,2),'strip')]               || ...
+               [g1s2d3~=3 &&     strcmpi(bpT(r,2),'depth')];
                        d(:,bpN(r,1):bpN(r,2),:)=nan; %nan out component that isn't relevant to this run (see g1s2d3 above)
               bp_distance(bpN(r,1):bpN(r,2))  =nan; %nan out their corresponding distances (irrelevant for this run)
               bp_angle   (bpN(r,1):bpN(r,2))  =nan; %and angles, similarly
@@ -169,7 +176,7 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
          if p==4; 
              xlabel('Frequency (Hz)'); 
              ylabel('ln(power)'); 
-             legend({'referential','', [bpd_mm(2)],'', [bpd_mm(3)],'',[bpd_mm(4)],'',[bpd_mm(5)],'',[bpd_mm(6)]},'location','sw'); 
+             legend({'referential','', num2str(bpd_mm(2)),'', num2str(bpd_mm(3)),'',num2str(bpd_mm(4)),'',num2str(bpd_mm(5)),'',num2str(bpd_mm(6))},'location','sw'); 
              axis tight; set(gca,'xscale','log','xtick',ft,'XTickLabel',ftl)
              colormap(cm); caxis([0 51]); cb=colorbar; cb.Ticks=[0.5 bpd_mm(2:end)+.5]; cb.TickLabels=[{'Referential'};cellstr(num2str(bpd_mm(2:end)'))];
          end
@@ -182,7 +189,7 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
         chtoplot=49:64; %example channels [EC143-49:64, EC175-]
         windowtoplot=12; %example window
         ts=1/sfx:1/sfx:1; %timestamps for 1-sec window
-        eegplotbytime2021(d(:,chtoplot,windowtoplot),512,300,[],0,[.3 .3 .3],1);
+        eegplotbytime2021(d(:,chtoplot,windowtoplot)',sfx,300,[],0,[.3 .3 .3],1);
     %             for c=1:length(chtoplot); plot(ts,-c*1000+d(:,chtoplot(c),windowtoplot),'color',[0 .6 .6],'linewidth',1); end
         if ~exist('yl','var'); yl=ylim; end; ylim(yl);
         axis off
