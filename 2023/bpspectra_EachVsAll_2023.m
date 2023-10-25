@@ -28,9 +28,10 @@ sqrt2log3=2; %using square root as default since the negative values from log gi
  Mc=nan(nchtocheck,length(frx),nwindtocheck); % will record the individual spectrum results
  tic
  for w = 1:nwindtocheck 
-     parfor c1=1:nchtocheck % parfor here
+     parfor c1=1:nchtocheck % parfor here, seems to cause errors
           % get spectrum of channel 1 (referential)
-           Mc(c1,:,w)=spectrogramjk_chronuxmtfft(sq(d(:,c1,w)),sfx,frxrange,[.5,1],0); 
+            fft = spectrogramjk_chronuxmtfft(sq(d(:,c1,w)),sfx,frxrange,[.5,1],0);
+            Mc(c1,:,w) = fft;
          for c2=1:nchtocheck 
              % get bipolar trace from channel 1 minus channel 2
              trc=sq(d(:,c1,w))-sq(d(:,c2,w)); 
