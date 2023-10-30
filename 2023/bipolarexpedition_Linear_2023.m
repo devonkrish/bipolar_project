@@ -19,6 +19,8 @@ datadir = fullfile(data_root, 'bipolar_expedition');
 % cd([datadir 'baseline-high-density-data/'])
 % load('/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedspikes_April2022.mat')
 tag_spikes_path = fullfile(datadir, 'taggedspikes_April2022.mat');
+output_path = fullfile(datadir, 'output/dkplot.png');
+
 load(tag_spikes_path);
 sfx=512;
 frxrange=[2 200]; %frequency range to examine
@@ -181,6 +183,9 @@ for bpd=0:maxbpd %bipolar distance (# of electrodes to subsample)
              colormap(cm); caxis([0 51]); cb=colorbar; cb.Ticks=[0.5 bpd_mm(2:end)+.5]; cb.TickLabels=[{'Referential'};cellstr(num2str(bpd_mm(2:end)'))];
          end
       end
+
+      saveas(gcf, output_path);
+    
 
       %% ECoG trace plots for increasing bipolar spacing (example patient)
       if p==4 
