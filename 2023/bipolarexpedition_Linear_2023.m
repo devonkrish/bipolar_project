@@ -13,10 +13,15 @@ end
 bpd_mm=bpd_mm*(0:maxbpd); %bipolar distances to be evaluated, in mm
 
 cm=cool(50); cm=[0 0 0;cm]; %first entry black for referential, rest allows color-coding of physical distance
-datadir='/Users/devonkrish/Desktop/IED/_BipolarReref/'; %bandpassfiltered/';
-cd([datadir 'baseline-high-density-data/'])
+
+% datadir='/Volumes/KLEEN_DRIVE/David/Bipolar project/'; %bandpassfiltered/';
+data_root = getenv("KLEEN_DATA");
+datadir = fullfile(data_root, 'bipolar_expedition');
+% cd([datadir 'baseline-high-density-data/'])
 % load('/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedspikes_April2022.mat')
-load('/Users/devonkrish/Desktop/IED/_BipolarReref/taggedspikes_April2022.mat')
+tag_spikes_path = fullfile(datadir, 'taggedspikes_April2022.mat');
+load(tag_spikes_path);
+
 sfx=512;
 frxrange=[2 200]; %frequency range to examine
   ft=[2 5 10 20 50 100 200]; ftl=cellstr(num2str(ft')); %frequency labels for plots
@@ -30,22 +35,30 @@ okpt=false(1,length(pts));
 
 %% LINEAR PAIRS analysis and plots
 figure(1); set(gcf,'color','w','position',[372 1 1297 1337]); 
-u=dir; uptbl={}; for i=1:length(u); uname=u(i).name; uptbl{i,1}=uname(1:end-28); end; uptbl(1:2)=[]; clear i u uname
+u=dir(fullfile(datadir, 'baseline-high-density-data')); uptbl={}; 
+for i=1:length(u)
+    uname=u(i).name; 
+    uptbl{i,1}=uname(1:end-28); 
+end
+uptbl(1:2)=[]; 
+clear i u uname
 hasmat=false(maxbpd+1,length(pts));
-for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
+for bpd=0:maxbpd %bipolar distance (# of electrodes to subsample)
     
     for p=find(okpt) %[4 12:23]
         pblocks=strfind(uptbl,pts{p}); 
-        for i=1:length(pblocks); 
+        for i=1:length(pblocks)
             isbl(i,1)=~isempty(pblocks{i}); 
         end
-        ptbl=find(isbl); if ~isempty(ptbl); disp(['Loading ' pts{p} ' blocks...']); end
+        ptbl=find(isbl); 
+        if ~isempty(ptbl); disp(['Loading ' pts{p} ' blocks...']); end
 
         d=[]; %d will become a matrix of samples by channels by trials consisting of referential intracranial EEG data
         nwind=0;
         for b=1:length(ptbl); disp(uptbl{ptbl(b)})
             % load using using "_jk" versions of baseline windows, updated 2/2022
-            load([datadir 'baseline-high-density-data/' uptbl{ptbl(b)} '_baselineWindows_fromraw.mat'])
+            datapath = fullfile(datadir, 'baseline-high-density-data', [uptbl{ptbl(b)} '_baselineWindows_fromraw.mat']);
+            load(datapath);
             % get rid of baseline windows containing spikes or artifact
             spksarti=hasspk | hasarti;
             nonspks_windows(:,spksarti)=[];
@@ -54,8 +67,10 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
             clear hasspkvec hasspk hasartivec hasarti spksarti % now clear spike- and artifact-related variables from workspace
     
             % convert to 3D matrix, combine all windows from consecutive blocks for each patient
-            for i=1:size(nonspks_windows,2); 
-                d(:,:,i+nwind)=nonspks_windows{2,i}'; % d is a 3D matrix samples by samples X channels X windows
+
+            for i=1:size(nonspks_windows,2)
+                d(:,:,i+nwind)=nonspks_windows{2,i}'; % d is a 3D matrix samples by channels by trials
+
             end
             nwind=size(d,3);
     
@@ -70,7 +85,8 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
         %   gives the number of electrodes in each row.
         % bpT is the name of the component (column 1) and whether it is a grid strip or depth
         %[bpN,bpT]=xlsread(['/Users/davidcaldwell/code/high_density_ecog/AN_ElectrodeInfoTDT.xlsx'],pts{p});
-        [bpN,bpT]=xlsread([datadir '/AN_ElectrodeInfoTDT.xlsx'],pts{p});
+        an_electrode_info_path = fullfile(datadir, 'AN_ElectrodeInfoTDT.xlsx');
+        [bpN,bpT]=xlsread(an_electrode_info_path,pts{p});
 
         % pull electrode XYZ coordinates (em) from TDT_elecs_all.mat file
         [em,~,~]=getelecs(pts{p},2);
@@ -127,9 +143,9 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
 
         %% look at either grids, strips, or depths, and nan the others
           for r=1:size(bpT,1)
-            if [g1s2d3==1 || any(strcmpi(bpT(r,2),{'grid','minigrid'}))]  || ...
-               [g1s2d3==2 ||     strcmpi(bpT(r,2),'strip')]               || ...
-               [g1s2d3==3 ||     strcmpi(bpT(r,2),'depth')];
+            if [g1s2d3~=1 && any(strcmpi(bpT(r,2),{'grid','minigrid'}))]  || ...
+               [g1s2d3~=2 &&     strcmpi(bpT(r,2),'strip')]               || ...
+               [g1s2d3~=3 &&     strcmpi(bpT(r,2),'depth')];
                        d(:,bpN(r,1):bpN(r,2),:)=nan; %nan out component that isn't relevant to this run (see g1s2d3 above)
               bp_distance(bpN(r,1):bpN(r,2))  =nan; %nan out their corresponding distances (irrelevant for this run)
               bp_angle   (bpN(r,1):bpN(r,2))  =nan; %and angles, similarly
@@ -164,7 +180,7 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
          if p==4; %changed from 4
              xlabel('Frequency (Hz)'); 
              ylabel('ln(power)'); 
-             legend({'referential','', [bpd_mm(2)],'', [bpd_mm(3)],'',[bpd_mm(4)],'',[bpd_mm(5)],'',[bpd_mm(6)]},'location','sw'); 
+             legend({'referential','', num2str(bpd_mm(2)),'', num2str(bpd_mm(3)),'',num2str(bpd_mm(4)),'',num2str(bpd_mm(5)),'',num2str(bpd_mm(6))},'location','sw'); 
              axis tight; set(gca,'xscale','log','xtick',ft,'XTickLabel',ftl)
              colormap(cm); caxis([0 51]); cb=colorbar; cb.Ticks=[0.5 bpd_mm(2:end)+.5]; cb.TickLabels=[{'Referential'};cellstr(num2str(bpd_mm(2:end)'))];
          end
@@ -177,8 +193,10 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
         chtoplot=49:64; %example channels [EC143-49:64, EC175-]
         windowtoplot=12; %example window
         ts=1/sfx:1/sfx:1; %timestamps for 1-sec window
-        eegplotbytime2021(d(:,chtoplot,windowtoplot),512,300,[],0,[.3 .3 .3],1);
-                 for c=1:length(chtoplot); plot(ts,-c*1000+d(:,chtoplot(c),windowtoplot),'color',[0 .6 .6],'linewidth',1); end
+
+        eegplotbytime2021(d(:,chtoplot,windowtoplot)',sfx,300,[],0,[.3 .3 .3],1);
+    %             for c=1:length(chtoplot); plot(ts,-c*1000+d(:,chtoplot(c),windowtoplot),'color',[0 .6 .6],'linewidth',1); end
+
         if ~exist('yl','var'); yl=ylim; end; ylim(yl);
         axis off
         sp(2,2,2); hold on; 

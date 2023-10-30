@@ -15,15 +15,20 @@ onlystrips=false;
 g1s2d3=1; % use either grids (1) or strips (2) or depths (3) but not the others
 
 cm=cool(6); cm(1,:)=[0 0 0]; 
-datadir='/Users/devonkrish/Desktop/IED/_BipolarReref/baseline-high-density-data/'; %bandpassfiltered/';
-cd([datadir])
-load('/Users/devonkrish/Desktop/IED/_BipolarReref/taggedspikes_April2022.mat')
+
+%datadir='/Volumes/KLEEN_DRIVE/David/Bipolar project/baseline-high-density-data/'; %bandpassfiltered/';
+data_root = getenv("KLEEN_DATA");
+datadir = fullfile(data_root, 'bipolar_expedition', 'baseline-high-density-data');
+%cd([datadir])
+tag_spikes_path = fullfile(data_root, 'bipolar_expedition', 'taggedspikes_April2022.mat');
+load(tag_spikes_path);
+
 % load('/Users/jonathankleen/Desktop/taggedspikes_April2022.mat')
 sfx=512;
 frxrange=[2 200]; %frequency range to examine
   ft=[2 5 10 20 50 100 200]; ftl=cellstr(num2str(ft')); %frequency labels for plots
  
-u=dir; uptbl={}; for i=1:length(u); uname=u(i).name; uptbl{i,1}=uname(1:end-28); end; uptbl(1:2)=[]; clear i u uname
+u=dir(datadir); uptbl={}; for i=1:length(u); uname=u(i).name; uptbl{i,1}=uname(1:end-28); end; uptbl(1:2)=[]; clear i u uname
 
 p=find(strcmpi(pts,pt)); %patient number ID
 pblocks=strfind(uptbl,pts{p}); 
@@ -36,7 +41,8 @@ ptbl=find(isbl); if ~isempty(ptbl); disp(['Loading ' pts{p} ' blocks...']); end
 d=[]; nwind=0;
 for b=1:length(ptbl); disp(uptbl{ptbl(b)})
     % load using using "_jk" versions of baseline windows, updated 2/2022
-    load([datadir uptbl{ptbl(b)} '_baselineWindows_fromraw.mat'])
+    ptpath = fullfile(datadir, [uptbl{ptbl(b)} '_baselineWindows_fromraw.mat']);
+    load(ptpath);
     % get rid of baseline windows containing spikes or artifact
     spksarti=hasspk | hasarti;
     nonspks_windows(:,spksarti)=[];
@@ -45,7 +51,7 @@ for b=1:length(ptbl); disp(uptbl{ptbl(b)})
     clear hasspkvec hasspk hasartivec hasarti spksarti % now clear spike- and artifact-related variables from workspace
 
     % convert to 3D matrix, combine all windows from consecutive blocks for each patient
-    for i=1:size(nonspks_windows,2); 
+    for i=1:size(nonspks_windows,2)
         d(:,:,i+nwind)=nonspks_windows{2,i}'; 
     end
     nwind=size(d,3);
@@ -57,15 +63,21 @@ nch=size(d,2);
 
 % load electrode component infor (grid/strip/depth and how many linear contacts they have in a row
 % [bpN,bpT]=xlsread(['/Users/davidcaldwell/code/high_density_ecog/AN_ElectrodeInfoTDT.xlsx'],pts{p});
-[bpN,bpT]=xlsread(['/Users/devonkrish/Desktop/IED/_BipolarReref/AN_ElectrodeInfoTDT.xlsx'],pts{p});
+
+an_electrode_info_path = fullfile(data_root, 'bipolar_expedition', 'AN_ElectrodeInfoTDT.xlsx');
+[bpN,bpT]=xlsread(an_electrode_info_path, pts{p});
+
 
 
 [em,eleclabels,anatomy]=getelecs(pts{p},2);
 
 cm=cool(6); cm(1,:)=[0 0 0]; 
-datadir='/Users/devonkrish/Desktop/IED/_BipolarReref/baseline-high-density-data/'; %bandpassfiltered/';
-cd([datadir])
-load('/Users/devonkrish/Desktop/IED/_BipolarReref/taggedspikes_April2022.mat')
+
+% datadir='/Volumes/KLEEN_DRIVE/David/Bipolar project/baseline-high-density-data/bandpassfiltered/';
+datadir = fullfile(datadir, 'bandpassfiltered');
+%cd([datadir])
+%load('/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedspikes_April2022.mat')
+
 sfx=512;
 frxrange=[2 200]; %frequency range to examine
   ft=[2 5 10 20 50 100 200]; ftl=cellstr(num2str(ft')); %frequency labels for plots
@@ -386,6 +398,7 @@ plot(frx,(RABm),'-' ,'linewidth',2,'color',[0 1 1]*.75)
 plot(frx,(Rbpm) ,'-' ,'linewidth',2,'color',[0 0 0]    )
 set(gca,'xscale','log','xtick',ft,'xticklabel',ftl,'xlim',fl); grid on
 title([num2str(c1) ' to ' num2str(c2) ' -- ' num2str(Mbp_distance(c1,c2)) 'mm'])
- cd('~/Desktop/')
- saveas(gcf,[pt '__ex.png'])
+ %cd('~/Desktop/')
+ savepath = fullfile('~', 'Desktop', [pt '__ex.png']);
+ saveas(gcf,savepath);
 
