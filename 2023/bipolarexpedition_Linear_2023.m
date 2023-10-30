@@ -171,7 +171,7 @@ for bpd=0:maxbpd; %bipolar distance (# of electrodes to subsample)
       end
 
       %% ECoG trace plots for increasing bipolar spacing (example patient)
-      if p==4 %changed from 4
+      if p==4 
         figure(5); set(gcf,'color','w','position',[1638 1 668 1344])
         sp(6,2,(bpd+1)*2-1); hold on; 
         chtoplot=49:64; %example channels [EC143-49:64, EC175-]

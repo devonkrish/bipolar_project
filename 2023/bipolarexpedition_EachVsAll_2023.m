@@ -63,7 +63,7 @@ nch=size(d,2);
 [em,eleclabels,anatomy]=getelecs(pts{p},2);
 
 cm=cool(6); cm(1,:)=[0 0 0]; 
-datadir='/Volumes/KLEEN_DRIVE/David/Bipolar project/baseline-high-density-data/bandpassfiltered/';
+datadir='/Users/devonkrish/Desktop/IED/_BipolarReref/baseline-high-density-data/'; %bandpassfiltered/';
 cd([datadir])
 load('/Users/devonkrish/Desktop/IED/_BipolarReref/taggedspikes_April2022.mat')
 sfx=512;
