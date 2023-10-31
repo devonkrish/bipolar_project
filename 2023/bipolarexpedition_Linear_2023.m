@@ -19,7 +19,6 @@ data_root = getenv("KLEEN_DATA");
 datadir = fullfile(data_root, 'bipolar_expedition');
 % cd([datadir 'baseline-high-density-data/'])
 % load('/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedspikes_April2022.mat')
-output_path = '/home/devkrish/bipolar_project/2023/output/testplot.png';
 tag_spikes_path = fullfile(datadir, 'taggedspikes_April2022.mat');
 load(tag_spikes_path);
 
@@ -214,7 +213,7 @@ for bpd=0:maxbpd %bipolar distance (# of electrodes to subsample)
     
     end % patient loop
     
-    saveas(gcf, output_path, 'png');
+    %saveas(gcf, '/home/devkrish/bipolar_project/2023/output/testplot.png', 'png'); %BIPOLARSPACINGPLOT 
     
     clear d isbl ptbl pblocks s trm badchI okc nch nwind
 end % bipolar spacing loop
@@ -250,6 +249,7 @@ end;
 grid on; ylabel('ln(power)'); xlabel('Frequency (Hz)'); 
 set(gca,'xlim',frxrange,'xscale','log','xtick',ft,'XTickLabel',ftl)
 colormap(cm); caxis([0 51]); cb=colorbar; cb.Ticks=[0.5 bpd_mm(2:end)+.5]; cb.TickLabels=[{'Referential'};cellstr(num2str(bpd_mm(2:end)'))];
+saveas(gcf, '/home/devkrish/bipolar_project/2023/output/PatientAggregated.png', 'png')
 
 %% Plotting individual sections of full frequency range separately
 figure('color','w','position',[1000 517 354 821]); colormap(cmocean('thermal')); %x=4*(0:maxbpd);
@@ -257,6 +257,6 @@ sp(4,1,4); f=frx>0&frx<=20; imagesc(bpd_mm,frx(f),sq(nanmean(TRM(:,:,f),2))'); s
 sp(4,1,3); f=frx>20&frx<=50; imagesc(bpd_mm,frx(f),sq(nanmean(TRM(:,:,f),2))'); set(gca,'ydir','normal','xtick',[]);
 sp(4,1,2); f=frx>50&frx<=100; imagesc(bpd_mm,frx(f),sq(nanmean(TRM(:,:,f),2))'); set(gca,'ydir','normal','xtick',[]);
 sp(4,1,1); f=frx>100&frx<=170; imagesc(bpd_mm,frx(f),sq(nanmean(TRM(:,:,f),2))'); set(gca,'ydir','normal','xtick',[]); title('Average across patients')
-
+saveas(gcf, '/home/devkrish/bipolar_project/2023/output/SepFreqRange.png', 'png')
 
 
