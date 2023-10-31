@@ -284,11 +284,11 @@ end
      title([num2str(anglemin) ' to ' num2str(anglemax)]); 
  end
 
-
 if doanglerange %loop through consecutive angle ranges of bipolar pair orientations to see effects
  loopangles
  return
 end
+
 
 %% bipolar power minus mean referential power for all pairs
 % will also add a line at 10mm for visualization of this common clinical inter-electrode distance
@@ -368,8 +368,8 @@ pcolorjk(binz(1:size(mb_m,2))-binsz,frx,mDiffcopy); shading flat; ylabel('Freque
  subplot(11,2,21); histogram(make1d(Mbp_distance),[0.001 binsz:binsz:85],'facecolor',.5*[1 1 1]); set(gca,'fontsize',12); xlabel('Binned bipolar distance (mm)','fontsize',14); 
  ylabel('Counts/bin','fontweight','normal'); axis tight; grid on; cb=colorbar; set(cb,'visible','off'); xlim(xldist); yline(10,'k-',.75); set(gca,'fontsize',14); 
  title(pt)
- cd('~/Desktop/')
- saveas(gcf,[pt '.png'])
+ %cd('~/Desktop/')
+ saveas(gcf,['/home/devkrish/bipolar_project/2023/output/' pt '.png'])
 
 %%
 figure('color','w','position',[104 374 381 431]); hold on
@@ -401,4 +401,5 @@ title([num2str(c1) ' to ' num2str(c2) ' -- ' num2str(Mbp_distance(c1,c2)) 'mm'])
  %cd('~/Desktop/')
  savepath = fullfile('~', 'Desktop', [pt '__ex.png']);
  saveas(gcf,savepath);
+
 

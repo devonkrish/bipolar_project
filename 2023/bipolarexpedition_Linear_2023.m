@@ -177,7 +177,7 @@ for bpd=0:maxbpd %bipolar distance (# of electrodes to subsample)
         figure(1); sp(5,5,p); hold on; %each patient in their own plot
          ribbons(frx,trm,cm(bpd_mm(bpd+1)+1,:),.5,'sem',0,0); 
          grid on; title(pts{p}); drawnow;
-         saveas(gcf, '/home/devkrish/bipolar_project/2023/output/eachOwn.png', 'png');
+         %saveas(gcf, '/home/devkrish/bipolar_project/2023/output/eachOwn.png', 'png');
          if p==4; 
              xlabel('Frequency (Hz)'); 
              ylabel('ln(power)'); 
@@ -186,7 +186,7 @@ for bpd=0:maxbpd %bipolar distance (# of electrodes to subsample)
              colormap(cm); caxis([0 51]); cb=colorbar; cb.Ticks=[0.5 bpd_mm(2:end)+.5]; cb.TickLabels=[{'Referential'};cellstr(num2str(bpd_mm(2:end)'))];
          end
       end
-      saveas(gcf, '/home/devkrish/bipolar_project/2023/output/eachPatientAggregated.png', 'png');
+      %saveas(gcf, '/home/devkrish/bipolar_project/2023/output/eachPatientAggregated.png', 'png');
       %% ECoG trace plots for increasing bipolar spacing (example patient)
       if p==4 
         figure(5); set(gcf,'color','w','position',[1638 1 668 1344])
@@ -214,7 +214,7 @@ for bpd=0:maxbpd %bipolar distance (# of electrodes to subsample)
     
     end % patient loop
     
-    %saveas(gcf, '/home/devkrish/bipolar_project/2023/output/testplot.png', 'png'); %BIPOLARSPACINGPLOT 
+    %saveas(gcf, '/home/devkrish/bipolar_project/2023/output/BIPOLARSPACING.png', 'png'); %BIPOLARSPACINGPLOT 
     
     clear d isbl ptbl pblocks s trm badchI okc nch nwind
 end % bipolar spacing loop
