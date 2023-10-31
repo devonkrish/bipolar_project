@@ -21,6 +21,9 @@ datadir = fullfile(data_root, 'bipolar_expedition');
 % load('/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedspikes_April2022.mat')
 tag_spikes_path = fullfile(datadir, 'taggedspikes_April2022.mat');
 load(tag_spikes_path);
+trm_hold = [];
+frx_hold = [];
+s_hold = [];
 
 sfx=512;
 frxrange=[2 200]; %frequency range to examine
@@ -162,6 +165,7 @@ for bpd=0:maxbpd %bipolar distance (# of electrodes to subsample)
 
         
         %% Calculate spectra and put into matrices (bipolarDistance X patient X frequency) aggregated for each patient 
+        
       if any(okc)
         [trm,frx,s]=bpspectra_Linear_2023(d,sfx,frxrange,okc);
 
@@ -173,7 +177,15 @@ for bpd=0:maxbpd %bipolar distance (# of electrodes to subsample)
         SS{bpd+1,p}=s; 
         hasmat(bpd+1,p)=1;
         Sokc{bpd+1,p}=okc; 
-
+        
+        % trm is mean of natural log transform of power across windows/trials
+        % frx is index of frequencies
+        % s is all spectra data (frx X channel X window) that was used to log-transform then mean to create trm
+        
+        trm_hold = [trm_hold; trm];
+        frx_hold = [frx_hold; frx];
+        s_hold = [s_hold; s];
+        
         figure(1); sp(5,5,p); hold on; %each patient in their own plot
          ribbons(frx,trm,cm(bpd_mm(bpd+1)+1,:),.5,'sem',0,0); 
          grid on; title(pts{p}); drawnow;
@@ -186,7 +198,10 @@ for bpd=0:maxbpd %bipolar distance (# of electrodes to subsample)
              colormap(cm); caxis([0 51]); cb=colorbar; cb.Ticks=[0.5 bpd_mm(2:end)+.5]; cb.TickLabels=[{'Referential'};cellstr(num2str(bpd_mm(2:end)'))];
          end
       end
+      
+      save('/home/devkrish/bipolar_project/2023/output/logtransform_data.mat', 'trm_hold', 'frx_hold', 's_hold', 'v7.3');
       %saveas(gcf, '/home/devkrish/bipolar_project/2023/output/eachPatientAggregated.png', 'png');
+      
       %% ECoG trace plots for increasing bipolar spacing (example patient)
       if p==4 
         figure(5); set(gcf,'color','w','position',[1638 1 668 1344])
@@ -250,7 +265,7 @@ end;
 grid on; ylabel('ln(power)'); xlabel('Frequency (Hz)'); 
 set(gca,'xlim',frxrange,'xscale','log','xtick',ft,'XTickLabel',ftl)
 colormap(cm); caxis([0 51]); cb=colorbar; cb.Ticks=[0.5 bpd_mm(2:end)+.5]; cb.TickLabels=[{'Referential'};cellstr(num2str(bpd_mm(2:end)'))];
-saveas(gcf, '/home/devkrish/bipolar_project/2023/output/PatientAggregated.png', 'png')
+%saveas(gcf, '/home/devkrish/bipolar_project/2023/output/PatientAggregated.png', 'png')
 
 %% Plotting individual sections of full frequency range separately
 figure('color','w','position',[1000 517 354 821]); colormap(cmocean('thermal')); %x=4*(0:maxbpd);

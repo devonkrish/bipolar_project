@@ -241,6 +241,7 @@ mARb__m=squeeze(mean(sqrt(mARb),3));
  subplot(8,2,7); histogram(make1d(Mbp_distance),0:binsz:85,'facecolor',.5*[1 1 1]); set(gca,'fontsize',12); xlabel('Binned bipolar distance (mm)','fontsize',14); 
  ylabel('Counts/bin','fontweight','normal'); axis tight; grid on; cb=colorbar; set(cb,'visible','off'); xlim(xldist)
 
+saveas(gcf, '/home/devkrish/bipolar_project/2023/output/LogTransEachVAll.png', 'png');
 
 % Histogram of angles
 if doanglerange
