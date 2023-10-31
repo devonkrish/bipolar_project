@@ -23,7 +23,6 @@ tag_spikes_path = fullfile(datadir, 'taggedspikes_April2022.mat');
 load(tag_spikes_path);
 trm_hold = [];
 frx_hold = [];
-s_hold = [];
 
 sfx=512;
 frxrange=[2 200]; %frequency range to examine
@@ -181,8 +180,9 @@ for bpd=0:maxbpd %bipolar distance (# of electrodes to subsample)
         % trm is mean of natural log transform of power across windows/trials
         % frx is index of frequencies
         % s is all spectra data (frx X channel X window) that was used to log-transform then mean to create trm
-        
+        disp(length(trm));
         trm_hold = [trm_hold; trm];
+
         frx_hold = [frx_hold; frx];
         %s_hold = [s_hold; s];
         
