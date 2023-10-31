@@ -184,7 +184,7 @@ for bpd=0:maxbpd %bipolar distance (# of electrodes to subsample)
         
         trm_hold = [trm_hold; trm];
         frx_hold = [frx_hold; frx];
-        s_hold = [s_hold; s];
+        %s_hold = [s_hold; s];
         
         figure(1); sp(5,5,p); hold on; %each patient in their own plot
          ribbons(frx,trm,cm(bpd_mm(bpd+1)+1,:),.5,'sem',0,0); 
@@ -199,7 +199,7 @@ for bpd=0:maxbpd %bipolar distance (# of electrodes to subsample)
          end
       end
       
-      save('/home/devkrish/bipolar_project/2023/output/logtransform_data.mat', 'trm_hold', 'frx_hold', 's_hold', '-v7.3');
+      save('/home/devkrish/bipolar_project/2023/output/logtransform_data.mat', 'trm_hold', 'frx_hold', '-v7.3');
       %saveas(gcf, '/home/devkrish/bipolar_project/2023/output/eachPatientAggregated.png', 'png');
       
       %% ECoG trace plots for increasing bipolar spacing (example patient)
