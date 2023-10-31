@@ -19,6 +19,7 @@ data_root = getenv("KLEEN_DATA");
 datadir = fullfile(data_root, 'bipolar_expedition');
 % cd([datadir 'baseline-high-density-data/'])
 % load('/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedspikes_April2022.mat')
+output_path = fullfile(datadir, 'output/dk_plot_oct30.png');
 tag_spikes_path = fullfile(datadir, 'taggedspikes_April2022.mat');
 load(tag_spikes_path);
 
@@ -209,9 +210,12 @@ for bpd=0:maxbpd %bipolar distance (# of electrodes to subsample)
             clear c specttoplot
       end; %set(gcf,'position',[1198 785 498 481]) %to resize spectra for figure
 
-
-
+    
+    
     end % patient loop
+    
+    saveas(gcf, output_path, 'png');
+    
     clear d isbl ptbl pblocks s trm badchI okc nch nwind
 end % bipolar spacing loop
 
