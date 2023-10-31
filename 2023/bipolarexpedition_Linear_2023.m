@@ -19,7 +19,7 @@ data_root = getenv("KLEEN_DATA");
 datadir = fullfile(data_root, 'bipolar_expedition');
 % cd([datadir 'baseline-high-density-data/'])
 % load('/Volumes/KLEEN_DRIVE/David/Bipolar project/taggedspikes_April2022.mat')
-output_path = fullfile(datadir, 'output/dk_plot_oct30.png');
+output_path = '/home/devkrish/bipolar_project/2023/output/testplot.png';
 tag_spikes_path = fullfile(datadir, 'taggedspikes_April2022.mat');
 load(tag_spikes_path);
 
