@@ -267,6 +267,7 @@ set(gca,'xlim',frxrange,'xscale','log','xtick',ft,'XTickLabel',ftl)
 colormap(cm); caxis([0 51]); cb=colorbar; cb.Ticks=[0.5 bpd_mm(2:end)+.5]; cb.TickLabels=[{'Referential'};cellstr(num2str(bpd_mm(2:end)'))];
 %saveas(gcf, '/home/devkrish/bipolar_project/2023/output/PatientAggregated.png', 'png')
 
+save('/home/devkrish/bipolar_project/2023/output/ps.mat', 'ps', '-v7.3');
 %% Plotting individual sections of full frequency range separately
 figure('color','w','position',[1000 517 354 821]); colormap(cmocean('thermal')); %x=4*(0:maxbpd);
 sp(4,1,4); f=frx>0&frx<=20; imagesc(bpd_mm,frx(f),sq(nanmean(TRM(:,:,f),2))'); set(gca,'ydir','normal','xtick',bpd_mm,'xticklabel',cellstr(num2str(bpd_mm'))'); xlabel('Bipolar distance (mm)'); ylabel('Frequency (Hz)')
