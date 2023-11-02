@@ -23,6 +23,7 @@ tag_spikes_path = fullfile(datadir, 'taggedspikes_April2022.mat');
 load(tag_spikes_path);
 trm_hold = [];
 frx_hold = [];
+aggregate_array = [];
 
 sfx=512;
 frxrange=[2 200]; %frequency range to examine
@@ -259,6 +260,7 @@ for bpd=[1:maxbpd 0]
         ps(bpd+1,p,:)=ps_;
     end
     %ribbons(frx,sq(ps(bpd+1,h,:)),cm(bpd_mm(bpd+1)+1,:),.3,'sem',0,0); grid on; set(gca,'xlim',frxrange)
+    aggregate_array = [aggregate_array, mean(sq(ps(bpd+1,h,:))];
     plot(frx,mean(sq(ps(bpd+1,h,:)),1),'color',cm(bpd_mm(bpd+1)+1,:),'linewidth',2); 
     hold on
 end; 
@@ -267,6 +269,7 @@ set(gca,'xlim',frxrange,'xscale','log','xtick',ft,'XTickLabel',ftl)
 colormap(cm); caxis([0 51]); cb=colorbar; cb.Ticks=[0.5 bpd_mm(2:end)+.5]; cb.TickLabels=[{'Referential'};cellstr(num2str(bpd_mm(2:end)'))];
 %saveas(gcf, '/home/devkrish/bipolar_project/2023/output/PatientAggregated.png', 'png')
 
+save('/home/devkrish/bipolar_project/2023/output/aggregate_array.mat', 'aggregate_array', '-v7.3');
 save('/home/devkrish/bipolar_project/2023/output/ps.mat', 'ps', '-v7.3');
 %% Plotting individual sections of full frequency range separately
 figure('color','w','position',[1000 517 354 821]); colormap(cmocean('thermal')); %x=4*(0:maxbpd);
