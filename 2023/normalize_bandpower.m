@@ -1,62 +1,49 @@
-%For high density grids only
-freq_table = '/Users/devonkrish/Desktop/IED/_BipolarReref/baseline-high-density-data/tableoutputfile.xlsx';
-freqs = [];
-bpds = [];
-powers = [];
 
-T = readtable(freq_table);
-pts_ids = T{1:9,1};
-for i = 1:height(T)
-    freqs = [freqs, T{i,2}];
-    bpds = [bpds, T{i,3}];
-    powers = [powers, T{i,4}];
+
+%% NORMALIZING BY FREQ BAND AND BIPOLAR DISTANCE
+%For High Density Grids Only
+
+bandpowers = load('/home/devkrish/bipolar_project/2023/normalizedbandpowers.mat');
+
+delta = bandpowers.delta;
+theta = bandpowers.theta;
+alpha = bandpowers.alpha;
+beta = bandpowers.beta;
+gamma = bandpowers.gamma;
+highgamma = bandpowers.highgamma;
+
+colors = {[0, 1.0, 0], [0, 0.5, 1.0], [1.0, 0, 0], [0.75, 0, 0.75], [1.0, 0.65, 0], [0, 1.0, 1.0], [0, 0, 0.5], [1.0, 0, 1.0], [0, 0.75, 0.25]};
+
+aggregate = {delta, theta, alpha, beta, gamma, highgamma};
+subtitles = {'Delta (2-4Hz)', 'Theta (4-8Hz)', 'Alpha (8-13Hz)', 'Beta (13-25Hz)', 'Gamma (25-50Hz)','High Gamma (50-1200Hz)' };
+ticklabels = {'Referential', '4 mm', '8 mm', '12 mm', '16 mm', '20 mm'};
+
+fig = figure();
+set(gcf, 'Position', [100, 100, 1100, 750]);
+
+for i = 1:6
+    subplot(3, 2, i)
+    for j = 1:9
+         plot(aggregate{i}(j,:), 'Color', colors{j}, 'LineWidth', 2, 'Marker', 'o', 'MarkerSize', 4, 'MarkerFaceColor', colors{j})
+         title(subtitles{i}, 'FontSize', 14);
+         ylim([-1.5 1.0]);
+         yticks(-1.5:0.5:1.0);
+         xticks(1:6);
+         xticklabels(ticklabels);
+         xlabel('Bipolar distance');
+         ylabel('Mean log power');
+         hold on
+         grid on
+         
+         ax = gca;
+         ax.GridColor = [0 0 0];
+         ax.GridAlpha = 1;
+         
+    end   
 end
 
-delta_index = [];
-theta_index = [];
-alpha_index = [];
-beta_index = [];
-gamma_index = [];
-highgamma_index = [];
-
-for j = 1:length(freqs)
-
-    if strcmp(freqs{j},'delta')
-        delta_index = [delta_index, j];
-    elseif strcmp(freqs{j},'theta')
-        theta_index = [theta_index, j];
-    elseif strcmp(freqs{j},'alpha')
-        alpha_index = [alpha_index, j];
-    elseif strcmp(freqs{j},'beta')
-        beta_index = [beta_index, j];
-    elseif strcmp(freqs{j},'gamma')
-        gamma_index = [gamma_index, j];
-    else
-        highgamma_index = [highgamma_index, j];
-    end
-end
-
-indexarr = delta_index;
-freqbandarr = [];
-hold = [];
-j = indexarr(1);
-initj = 1;
-
-for i = 1:9
-    while j<=indexarr(54)
-        hold = [hold; powers(j)];
-        j = j+9;
-    freqbandarr = [freqbandarr; hold];
-    hold = [];
-
-    initj = initj + 1;
-    j = initj + indexarr(1);
-    end
-end
-
-
-
-
+%saveas(fig, '/Users/devonkrish/Desktop/IED/_BipolarReref/Updated figs/Supp Fig 1.png');
+%saveas(fig, '/Users/devonkrish/Desktop/IED/_BipolarReref/Updated figs/Supp Fig 1.fig');
 
 
 
